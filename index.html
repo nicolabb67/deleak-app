@@ -567,9 +567,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return val ? String(val) : "";
     }
 
-    // --- GESTION DE L'UTILISATEUR (Nom et Email) --- 
-    const clientName = localStorage.getItem('deleak_clientName') || "Utilisateur Elite"; 
-    const clientEmail = localStorage.getItem('deleak_clientEmail') || "contact@client.com"; 
+    // --- LECTURE SECURISEE DEPUIS WEBFLOW (URL) ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const clientName = urlParams.get('name') || localStorage.getItem('deleak_clientName') || "Utilisateur Elite"; 
+    const clientEmail = urlParams.get('email') || localStorage.getItem('deleak_clientEmail') || "contact@client.com"; 
 
     // Mise à jour de l'interface avec les infos du client
     const nameDisplay = document.getElementById('sidebar-user-name'); 
