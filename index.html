@@ -239,7 +239,7 @@
    
   <div class="d-sidebar"> 
     <div class="d-logo"> 
-        <img src="https://cdn.prod.website-files.com/6970e25065cc38099d4289a0/69932a04e8d78ec1c0b527c5_Copie_de_Copie_de_Ciel__7_-removebg-preview.png" alt="Logo Delic"> 
+        <img src="https://cdn.prod.website-files.com/6970e25065cc38099d4289a0/69932a04e8d78ec1c0b527c5_Copie_de_Copie_de_Ciel__7_-removebg-preview.png" alt="Logo DeLeak"> 
     </div> 
 
     <nav> 
@@ -808,6 +808,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             
             if (data.records && data.records.length > 0) {
+                // NOUVEAU : On sauvegarde les tickets manuels globalement pour le rapport d'export
+                window.globalAgentRecords = data.records;
+
                 container.innerHTML = ''; 
                 
                 const records = data.records.sort((a, b) => {
@@ -926,7 +929,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- ENVOI DE LA DÉCISION D'ÉVALUATION ET MODIFICATION AIRTABLE ---
     window.sendEvaluationDecision = function(recordId, url, decision) {
         
-        // CORRECTION ICI : L'action visuelle est enregistrée IMMÉDIATEMENT, avant l'appel API
         window.logUserAction('eval_decision', url, decision.includes('GARDER') ? 'GARDER' : 'SUPPRIMER');
 
         const itemDiv = document.getElementById(`eval-${recordId}`);
@@ -962,7 +964,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error("Impossible de mettre à jour Airtable.");
             }
         }).catch(err => {
-            // L'alerte d'erreur apparaîtra si l'API échoue, mais l'action visuelle a déjà été ajoutée !
             alert("Note : La base de données Airtable n'a pas pu être contactée pour cette démo, mais l'action a bien été enregistrée dans l'historique de votre tableau de bord.");
             if(itemDiv) itemDiv.style.opacity = '1';
         });
@@ -1088,7 +1089,6 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.classList.add('d-btn-disabled'); 
             btn.style.pointerEvents = 'none'; 
 
-            // CORRECTION ICI : L'action visuelle est enregistrée IMMÉDIATEMENT !
             window.logUserAction('manual_req', input.value.trim(), 'Équipe DeLeak');
 
             const emailData = {  
@@ -1134,7 +1134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } 
     }; 
 
-    // --- ACTIONS LOGIC (MISE À JOUR) --- 
+    // --- ACTIONS LOGIC --- 
     const fakeSites = ['fapeza.com', 'sorrymother.video', 'fappeningbook.com', 'thotsbay.ac', 'thefappening.plus', 'OnlyLeaks.com', 'ThotHub.org', 'Mega.nz', 'Telegram (Canal Privé)', 'SimpCity.su']; 
 
     function updateUrlSelector() { 
@@ -1165,7 +1165,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = Date.now(); 
         let allActions = []; 
 
-        // 1. Actions simulées par les anciens scans
         scanHistory.forEach(scan => { 
             if (selectedUrl !== 'all' && scan.url !== selectedUrl) return; 
             const scanTime = scan.timestamp || (now - 3600000); 
@@ -1187,16 +1186,13 @@ document.addEventListener('DOMContentLoaded', () => {
             } 
         }); 
 
-        // 2. Les vraies actions de l'utilisateur (Manuelles & Évaluations)
         let userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
         userActions.forEach(action => {
             if (selectedUrl !== 'all' && !action.url.includes(selectedUrl)) return;
             allActions.push(action);
         });
 
-        // On trie tout du plus récent au plus ancien
         allActions.sort((a, b) => b.time - a.time); 
-        // On affiche les 8 dernières actions (au lieu de 5) pour bien voir les actions manuelles !
         const displayActions = allActions.slice(0, 8); 
 
         container.innerHTML = ''; 
@@ -1223,7 +1219,6 @@ document.addEventListener('DOMContentLoaded', () => {
             let shortUrl = String(action.url || "Scan").replace('https://', '').replace('www.', ''); 
             if(shortUrl.length > 25) shortUrl = shortUrl.substring(0, 25) + '...'; 
 
-            // Formatage spécifique du texte pour l'évaluation
             let siteDisplay = action.site;
             if(action.type === 'eval_decision') {
                let colorDec = action.site.includes('GARDER') ? '#10b981' : '#ef4444';
@@ -1246,7 +1241,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const actionUrlSelect = document.getElementById('action-url-select');
     if(actionUrlSelect) actionUrlSelect.addEventListener('change', renderActionsLog); 
 
-    // --- RAPPORTS LOGIC --- 
+    // --- RAPPORTS LOGIC (MISE À JOUR) --- 
     function generateReportCards() { 
         const container = document.getElementById('reports-grid'); 
         if(!container) return;
@@ -1267,7 +1262,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const totalScansMonth = historyForMonth.length; 
             const totalLeaksMonth = historyForMonth.reduce((acc, curr) => acc + parseInt(curr.leaks || 0), 0); 
              
-            const hasData = totalScansMonth > 0; 
+            // On vérifie s'il y a des actions manuelles enregistrées pour ce mois (via Airtable)
+            const manualsMonth = (window.globalAgentRecords || []).filter(r => {
+                const dateObj = new Date(r.fields.Date ? r.fields.Date : r.createdTime);
+                return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === monthName.toLowerCase() && dateObj.getFullYear().toString() === year.toString();
+            }).length;
+
+            // On vérifie s'il y a des évaluations enregistrées ce mois-ci
+            const userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
+            const evalsMonth = userActions.filter(a => {
+                if(a.type !== 'eval_decision') return false;
+                const dateObj = new Date(a.time);
+                return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === monthName.toLowerCase() && dateObj.getFullYear().toString() === year.toString();
+            }).length;
+
+            // Le bouton est actif s'il y a au moins un scan OU une demande manuelle OU une évaluation
+            const hasData = (totalScansMonth + manualsMonth + evalsMonth) > 0; 
             const btnClass = hasData ? 'd-btn-secondary' : 'd-btn-secondary d-btn-disabled'; 
             const statusColor = hasData ? 'var(--success)' : '#ccc'; 
             const statusText = hasData ? '● Disponible' : '○ Aucune donnée'; 
@@ -1277,20 +1287,73 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="width:50px; height:50px; background:var(--primary-soft); border-radius:12px; display:flex; align-items:center; justify-content:center; margin:0 auto 15px auto;"><i class="fas fa-file-invoice" style="color:var(--primary); font-size:24px;"></i></div> 
                 <h3 style="margin:0; font-size:16px; color:var(--text-dark);">${monthName} ${year}</h3> 
                 <p style="margin:5px 0 15px 0; font-size:12px; color:${statusColor};">${statusText}</p> 
-                <div style="display:flex; justify-content:space-around; margin-bottom:15px; font-size:12px; color:var(--text-muted);"><div>Scans: <b>${totalScansMonth}</b></div><div>Fuites: <b>${totalLeaksMonth}</b></div></div> 
+                <div style="display:flex; justify-content:space-around; margin-bottom:15px; font-size:12px; color:var(--text-muted);"><div>Scans: <b>${totalScansMonth}</b></div><div>Actions: <b>${manualsMonth + evalsMonth}</b></div></div> 
                 <button class="${btnClass}" onclick="downloadRealReport('${monthName}', '${year}', ${totalScansMonth}, ${totalLeaksMonth})"><i class="fas fa-download"></i> Télécharger</button> 
             </div>`; 
         } 
     } 
 
+    // NOUVEAU RAPPORT EXPORT COMPLET
     window.downloadRealReport = function(month, year, scans, leaks) { 
-        if(scans === 0) { alert("Aucune donnée disponible."); return; } 
-        const details = scanHistory.filter(s => {
+        
+        // 1. Synthèse des scans automatiques
+        const scanDetails = scanHistory.filter(s => {
             const dateStr = safeStr(s.dateFull);
             return dateStr.toLowerCase().includes(month.toLowerCase()) && dateStr.includes(year.toString());
         }).map(s => `- ${safeStr(s.dateFull)} : ${safeStr(s.url)} (${s.leaks} fuites)`).join('\n'); 
-        const text = `Rapport Delic - ${month} ${year}\n\nTotal scans: ${scans}\nFuites: ${leaks}\n\nDETAILS:\n${details}`; 
-        const filename = `Rapport_Delic_${month}_${year}.txt`; 
+
+        // 2. Synthèse des demandes manuelles depuis Airtable
+        let manualDetails = "";
+        if(window.globalAgentRecords) {
+            const manualsMonth = window.globalAgentRecords.filter(r => {
+                const dateObj = new Date(r.fields.Date ? r.fields.Date : r.createdTime);
+                return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === month.toLowerCase() && dateObj.getFullYear().toString() === year.toString();
+            });
+            manualDetails = manualsMonth.map(r => {
+                const f = r.fields;
+                const d = new Date(f.Date ? f.Date : r.createdTime).toLocaleDateString('fr-FR');
+                const url = f.URL || "N/A";
+                const status = f.Status || "En attente";
+                const rep = f.Compte_Rendu || "Aucune réponse de l'agent pour le moment.";
+                return `- Date: ${d}\n  Cible: ${url}\n  Statut: ${status.toUpperCase()}\n  Réponse de l'agent: ${rep}`;
+            }).join('\n\n');
+        }
+        if(!manualDetails) manualDetails = "Aucune demande manuelle ce mois-ci.";
+
+        // 3. Synthèse des Évaluations traitées
+        let evalDetails = "";
+        const userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
+        const evalsMonth = userActions.filter(a => {
+            if(a.type !== 'eval_decision') return false;
+            const dateObj = new Date(a.time);
+            return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === month.toLowerCase() && dateObj.getFullYear().toString() === year.toString();
+        });
+        evalDetails = evalsMonth.map(a => {
+            const d = new Date(a.time).toLocaleDateString('fr-FR');
+            const url = a.url || "N/A";
+            const decision = a.site || "N/A";
+            return `- Date: ${d}\n  Lien: ${url}\n  Décision choisie: ${decision}`;
+        }).join('\n\n');
+        if(!evalDetails) evalDetails = "Aucune évaluation traitée ce mois-ci.";
+
+        // Création du document texte
+        const text = `=================================================\n` +
+                     ` RAPPORT D'ACTIVITÉ DELEAK - ${month.toUpperCase()} ${year}\n` +
+                     `=================================================\n\n` +
+                     `[ SCANS AUTOMATIQUES ]\n` +
+                     `Total des scans lancés : ${scans}\n` +
+                     `Nouvelles fuites détectées : ${leaks}\n\n` +
+                     `Détails :\n${scanDetails || "Aucun scan automatique ce mois-ci."}\n\n` +
+                     `-------------------------------------------------\n\n` +
+                     `[ DEMANDES MANUELLES & AGENT PERSONNEL ]\n\n` +
+                     `${manualDetails}\n\n` +
+                     `-------------------------------------------------\n\n` +
+                     `[ ÉVALUATIONS DE COMPTES (GARDER / SUPPRIMER) ]\n\n` +
+                     `${evalDetails}\n\n` +
+                     `=================================================\n` +
+                     `Rapport généré automatiquement par DeLeak.`;
+
+        const filename = `Rapport_DeLeak_${month}_${year}.txt`; 
         const element = document.createElement('a'); 
         element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); 
         element.setAttribute('download', filename); 
