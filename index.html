@@ -384,6 +384,18 @@
       <h2>Demandez une analyse asynchrone des bases de données pirates.</h2> 
       
       <div class="d-scan-box"> 
+        
+        <div style="background: var(--primary-soft); border: 1px solid rgba(203, 108, 230, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; text-align: left;">
+            <div>
+                <div style="font-weight: 700; color: var(--primary); font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Plan ELITE</div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">Profils (pseudos) autorisés</div>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-size: 24px; font-weight: 800; color: var(--text-dark);" id="ui-profiles-used">0</span>
+                <span style="font-size: 16px; font-weight: 600; color: var(--text-muted);">/ <span id="ui-profiles-max">4</span></span>
+            </div>
+        </div>
+
         <i class="fas fa-fingerprint" style="font-size: 50px; color: var(--primary); margin-bottom: 25px;"></i> 
         <h3 style="font-size: 24px; font-weight: 700; margin: 0 0 10px 0; color: var(--text-dark);">Analyse d'Identité Numérique</h3> 
         <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">Entrez les pseudonymes séparés par des virgules (ex: sophierain, sophie_rain).</p> 
@@ -596,6 +608,14 @@
 <script> 
 document.addEventListener('DOMContentLoaded', () => { 
 
+    // --- PARAMÈTRE DE L'ABONNEMENT ---
+    // Tu peux changer ce chiffre plus tard selon le plan du client (ex: 1, 2 ou 4)
+    const MAX_PROFILES = 4;
+    document.getElementById('ui-profiles-max').innerText = MAX_PROFILES;
+    
+    // Set global pour stocker tous les pseudos uniques du client
+    let globalUniqueProfiles = new Set();
+
     // --- UTILS SAFE STRING ---
     function safeStr(val) {
         return val ? String(val) : "";
@@ -610,11 +630,8 @@ document.addEventListener('DOMContentLoaded', () => {
             site: siteContext,
             time: Date.now()
         });
-        // On garde uniquement les 20 dernières actions pour ne pas surcharger la mémoire locale
         if(userActions.length > 20) userActions = userActions.slice(-20);
         localStorage.setItem('delic_user_actions', JSON.stringify(userActions));
-        
-        // Rafraîchit l'affichage du journal d'actions immédiatement
         if(typeof renderActionsLog === 'function') renderActionsLog();
     };
 
@@ -766,11 +783,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- STATS ENGINE VIA AIRTABLE --- 
     function updateDashboardStats() { 
-        if(globalChartRecords.length === 0) return;
+        if(globalChartRecords.length === 0) {
+            document.getElementById('ui-profiles-used').innerText = 0;
+            return;
+        }
 
-        const uniqueUrlSet = new Set(globalChartRecords.map(r => r.fields.Pseudos).filter(Boolean)); 
-        const totalUrls = uniqueUrlSet.size; 
-        
+        // Met à jour la liste des profils uniques globale pour le contrôle de limite
+        globalUniqueProfiles = new Set(globalChartRecords.map(r => r.fields.Pseudos).filter(Boolean));
+        document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
+
+        const totalUrls = globalUniqueProfiles.size; 
         let totalLeaks = 0; 
         let totalRemoved = 0; 
         
@@ -1272,7 +1294,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const actionUrlSelect = document.getElementById('action-url-select');
     if(actionUrlSelect) actionUrlSelect.addEventListener('change', renderActionsLog); 
 
-    // --- RAPPORTS LOGIC (MISE À JOUR) --- 
+    // --- RAPPORTS LOGIC --- 
     function generateReportCards() { 
         const container = document.getElementById('reports-grid'); 
         if(!container) return;
@@ -1503,7 +1525,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         
-        // Clic sur "Nouveau Scan" -> Lance l'email
+        // Clic sur "Nouveau Scan" -> VERIFICATION DES LIMITES ET ENVOI
         const startScanBtn = e.target.closest('#btn-start-scan');
         if(startScanBtn) {
             const input = document.getElementById('scan-input'); 
@@ -1516,6 +1538,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 return; 
             } 
             
+            // --- VÉRIFICATION DE LA LIMITE DE PROFILS ---
+            const requestedProfiles = pseudoValue.split(',').map(s => s.trim()).filter(s => s.length > 0);
+            let projectedSet = new Set(globalUniqueProfiles);
+            requestedProfiles.forEach(p => projectedSet.add(p));
+
+            if(projectedSet.size > MAX_PROFILES) {
+                input.classList.add('error');
+                alert(`⚠️ Limite atteinte !\n\nVotre abonnement limite la surveillance à ${MAX_PROFILES} profil(s) unique(s).\n\nVous avez actuellement ${globalUniqueProfiles.size} profil(s) actif(s) et vous essayez d'en lancer ${projectedSet.size} au total.\n\nVeuillez passer au plan supérieur dans l'onglet "Abonnement".`);
+                setTimeout(() => { input.classList.remove('error'); }, 2000);
+                return;
+            }
+            // ---------------------------------------------
+
             startScanBtn.innerText = "LANCEMENT..."; 
             startScanBtn.classList.add('d-btn-disabled'); 
             startScanBtn.style.pointerEvents = 'none'; 
@@ -1532,6 +1567,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 input.value = ""; 
                 resultBox.classList.remove('d-hidden'); 
                 resultBox.classList.add('d-visible'); 
+                
+                // On met à jour manuellement la limite UI pour faire joli
+                requestedProfiles.forEach(p => globalUniqueProfiles.add(p));
+                document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
+
             }).catch((err) => { 
                 alert("Erreur lors de la création de la demande. Vérifiez votre connexion."); 
                 startScanBtn.innerText = "LANCER L'ANALYSE"; 
@@ -1546,5 +1586,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body> 
 </html>
-
-
