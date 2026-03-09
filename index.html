@@ -382,6 +382,7 @@
     <div id="view-scanner" class="d-view d-hidden"> 
       <h1>Nouveau Scan Profond</h1> 
       <h2>Demandez une analyse asynchrone des bases de données pirates.</h2> 
+      
       <div class="d-scan-box"> 
         <i class="fas fa-fingerprint" style="font-size: 50px; color: var(--primary); margin-bottom: 25px;"></i> 
         <h3 style="font-size: 24px; font-weight: 700; margin: 0 0 10px 0; color: var(--text-dark);">Analyse d'Identité Numérique</h3> 
@@ -396,6 +397,37 @@
            <span style="font-size:14px; font-weight:400; color:var(--text-muted); display:block; margin-top:10px;">L'équipe DeLeak a été notifiée. L'extraction asynchrone est en cours (~45 mins).<br>Vous pourrez voir les résultats dans l'onglet "Suivi de Scan".</span> 
         </div> 
       </div> 
+
+      <div class="d-card" style="margin-top: 30px; max-width: 700px; margin-left: auto; margin-right: auto;">
+          <h3 style="margin-top:0; font-size:18px; border-bottom:1px solid var(--border-light); padding-bottom:15px; color:var(--text-dark);">
+              <i class="fas fa-link" style="color:var(--primary); margin-right:8px;"></i> Lier vos comptes officiels
+          </h3>
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom: 20px;">
+              Aidez notre algorithme à distinguer vos vrais comptes des usurpations en nous fournissant vos liens officiels.
+          </p>
+
+          <div class="d-grid-2" style="gap: 15px; margin-top:0;">
+              <div style="display:flex; align-items:center; background:#f8f9fa; border: 1px solid var(--border-light); border-radius:10px; padding: 5px 15px; transition: 0.3s;">
+                  <i class="fab fa-instagram" style="color:#E1306C; font-size:20px; width:30px;"></i>
+                  <input type="text" id="social-ig" placeholder="Lien ou @pseudo" style="border:none; background:transparent; padding:10px; width:100%; outline:none; color:var(--text-dark); font-family: 'Inter', sans-serif; font-size:14px;">
+              </div>
+              <div style="display:flex; align-items:center; background:#f8f9fa; border: 1px solid var(--border-light); border-radius:10px; padding: 5px 15px; transition: 0.3s;">
+                  <i class="fab fa-tiktok" style="color:#000000; font-size:20px; width:30px;"></i>
+                  <input type="text" id="social-tk" placeholder="Lien ou @pseudo" style="border:none; background:transparent; padding:10px; width:100%; outline:none; color:var(--text-dark); font-family: 'Inter', sans-serif; font-size:14px;">
+              </div>
+              <div style="display:flex; align-items:center; background:#f8f9fa; border: 1px solid var(--border-light); border-radius:10px; padding: 5px 15px; transition: 0.3s;">
+                  <i class="fab fa-snapchat-ghost" style="color:#FFFC00; text-shadow: 0 0 1px #000; font-size:20px; width:30px;"></i>
+                  <input type="text" id="social-sc" placeholder="Lien ou @pseudo" style="border:none; background:transparent; padding:10px; width:100%; outline:none; color:var(--text-dark); font-family: 'Inter', sans-serif; font-size:14px;">
+              </div>
+              <div style="display:flex; align-items:center; background:#f8f9fa; border: 1px solid var(--border-light); border-radius:10px; padding: 5px 15px; transition: 0.3s;">
+                  <i class="fab fa-youtube" style="color:#FF0000; font-size:20px; width:30px;"></i>
+                  <input type="text" id="social-yt" placeholder="Lien de la chaîne" style="border:none; background:transparent; padding:10px; width:100%; outline:none; color:var(--text-dark); font-family: 'Inter', sans-serif; font-size:14px;">
+              </div>
+          </div>
+
+          <button id="btn-submit-socials" class="d-btn-secondary" style="margin-top: 20px; max-width: 300px; display: block; margin-left: auto; margin-right: auto;">ENREGISTRER MES RÉSEAUX</button>
+      </div>
+
     </div> 
 
     <div id="view-tracking" class="d-view d-hidden"> 
@@ -808,7 +840,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             
             if (data.records && data.records.length > 0) {
-                // NOUVEAU : On sauvegarde les tickets manuels globalement pour le rapport d'export
                 window.globalAgentRecords = data.records;
 
                 container.innerHTML = ''; 
@@ -1262,13 +1293,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const totalScansMonth = historyForMonth.length; 
             const totalLeaksMonth = historyForMonth.reduce((acc, curr) => acc + parseInt(curr.leaks || 0), 0); 
              
-            // On vérifie s'il y a des actions manuelles enregistrées pour ce mois (via Airtable)
             const manualsMonth = (window.globalAgentRecords || []).filter(r => {
                 const dateObj = new Date(r.fields.Date ? r.fields.Date : r.createdTime);
                 return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === monthName.toLowerCase() && dateObj.getFullYear().toString() === year.toString();
             }).length;
 
-            // On vérifie s'il y a des évaluations enregistrées ce mois-ci
             const userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
             const evalsMonth = userActions.filter(a => {
                 if(a.type !== 'eval_decision') return false;
@@ -1276,7 +1305,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === monthName.toLowerCase() && dateObj.getFullYear().toString() === year.toString();
             }).length;
 
-            // Le bouton est actif s'il y a au moins un scan OU une demande manuelle OU une évaluation
             const hasData = (totalScansMonth + manualsMonth + evalsMonth) > 0; 
             const btnClass = hasData ? 'd-btn-secondary' : 'd-btn-secondary d-btn-disabled'; 
             const statusColor = hasData ? 'var(--success)' : '#ccc'; 
@@ -1293,16 +1321,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } 
     } 
 
-    // NOUVEAU RAPPORT EXPORT COMPLET
     window.downloadRealReport = function(month, year, scans, leaks) { 
         
-        // 1. Synthèse des scans automatiques
         const scanDetails = scanHistory.filter(s => {
             const dateStr = safeStr(s.dateFull);
             return dateStr.toLowerCase().includes(month.toLowerCase()) && dateStr.includes(year.toString());
         }).map(s => `- ${safeStr(s.dateFull)} : ${safeStr(s.url)} (${s.leaks} fuites)`).join('\n'); 
 
-        // 2. Synthèse des demandes manuelles depuis Airtable
         let manualDetails = "";
         if(window.globalAgentRecords) {
             const manualsMonth = window.globalAgentRecords.filter(r => {
@@ -1320,7 +1345,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if(!manualDetails) manualDetails = "Aucune demande manuelle ce mois-ci.";
 
-        // 3. Synthèse des Évaluations traitées
         let evalDetails = "";
         const userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
         const evalsMonth = userActions.filter(a => {
@@ -1336,7 +1360,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('\n\n');
         if(!evalDetails) evalDetails = "Aucune évaluation traitée ce mois-ci.";
 
-        // Création du document texte
         const text = `=================================================\n` +
                      ` RAPPORT D'ACTIVITÉ DELEAK - ${month.toUpperCase()} ${year}\n` +
                      `=================================================\n\n` +
@@ -1440,6 +1463,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const submitBtn = e.target.closest('#btn-submit-manual');
         if (submitBtn) { submitManualRequest(); }
+        
+        // --- SOUMISSION DES NOUVEAUX RÉSEAUX SOCIAUX ---
+        const submitSocialsBtn = e.target.closest('#btn-submit-socials');
+        if(submitSocialsBtn) {
+            const ig = document.getElementById('social-ig').value.trim();
+            const tk = document.getElementById('social-tk').value.trim();
+            const sc = document.getElementById('social-sc').value.trim();
+            const yt = document.getElementById('social-yt').value.trim();
+
+            if(!ig && !tk && !sc && !yt) {
+                alert("Veuillez renseigner au moins un réseau social.");
+                return;
+            }
+
+            submitSocialsBtn.innerText = "ENREGISTREMENT...";
+            submitSocialsBtn.classList.add('d-btn-disabled');
+            submitSocialsBtn.style.pointerEvents = 'none';
+
+            const emailData = {
+                url_target: `MISE À JOUR RÉSEAUX SOCIAUX | CLIENT : ${clientEmail}\n\nInstagram: ${ig || 'Non renseigné'}\nTikTok: ${tk || 'Non renseigné'}\nSnapchat: ${sc || 'Non renseigné'}\nYouTube: ${yt || 'Non renseigné'}`,
+                to_email: "nicolopro170817@gmail.com"
+            };
+
+            emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => {
+                alert("Réseaux sociaux enregistrés avec succès ! Notre équipe a été notifiée.");
+                submitSocialsBtn.innerText = "RÉSEAUX ENREGISTRÉS ✓";
+                
+                setTimeout(() => {
+                    submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX";
+                    submitSocialsBtn.classList.remove('d-btn-disabled');
+                    submitSocialsBtn.style.pointerEvents = 'auto';
+                }, 3000);
+            }).catch((err) => {
+                alert("Erreur lors de l'enregistrement. Vérifiez votre connexion.");
+                submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX";
+                submitSocialsBtn.classList.remove('d-btn-disabled');
+                submitSocialsBtn.style.pointerEvents = 'auto';
+            });
+        }
         
         // Clic sur "Nouveau Scan" -> Lance l'email
         const startScanBtn = e.target.closest('#btn-start-scan');
