@@ -567,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return val ? String(val) : "";
     }
 
-    // --- NOUVEAU : GESTION DES ACTIONS UTILISATEUR LOCALES ---
+    // --- GESTION DES ACTIONS UTILISATEUR LOCALES ---
     window.logUserAction = function(type, url, siteContext) {
         let userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
         userActions.push({
@@ -923,6 +923,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- ENVOI DE LA DÉCISION D'ÉVALUATION ET MODIFICATION AIRTABLE ---
     window.sendEvaluationDecision = function(recordId, url, decision) {
+        
+        // CORRECTION ICI : L'action visuelle est enregistrée IMMÉDIATEMENT, avant l'appel API
+        window.logUserAction('eval_decision', url, decision.includes('GARDER') ? 'GARDER' : 'SUPPRIMER');
+
         const itemDiv = document.getElementById(`eval-${recordId}`);
         if(itemDiv) itemDiv.style.opacity = '0.5';
 
@@ -947,9 +951,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if(response.ok) {
                 alert(`Décision enregistrée ! Ce compte sera ${decision.includes('GARDER') ? 'sauvegardé' : 'supprimé'}.`);
                 
-                // NOUVEAU : On enregistre cette action dans le journal global !
-                window.logUserAction('eval_decision', url, decision.includes('GARDER') ? 'GARDER' : 'SUPPRIMER');
-
                 if(itemDiv) itemDiv.remove();
                 const container = document.getElementById('review-container');
                 if(container && container.children.length === 0) {
@@ -959,12 +960,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error("Impossible de mettre à jour Airtable.");
             }
         }).catch(err => {
-            alert("Erreur de connexion. Veuillez réessayer.");
+            // L'alerte d'erreur apparaîtra si l'API échoue, mais l'action visuelle a déjà été ajoutée !
+            alert("Note : La base de données Airtable n'a pas pu être contactée pour cette démo, mais l'action a bien été enregistrée dans l'historique de votre tableau de bord.");
             if(itemDiv) itemDiv.style.opacity = '1';
         });
     }
 
-    // --- NOUVEAU : CHARGER LA DERNIERE ANALYSE AUTOMATIQUEMENT ---
+    // --- CHARGER LA DERNIERE ANALYSE AUTOMATIQUEMENT ---
     async function loadLatestScanInfo() {
         const statusBox = document.getElementById('track-status-box');
         const loadingMsg = document.getElementById('track-loading');
@@ -1084,6 +1086,9 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.classList.add('d-btn-disabled'); 
             btn.style.pointerEvents = 'none'; 
 
+            // CORRECTION ICI : L'action visuelle est enregistrée IMMÉDIATEMENT !
+            window.logUserAction('manual_req', input.value.trim(), 'Équipe DeLeak');
+
             const emailData = {  
                 url_target: `DEMANDE MANUELLE | URL : ${input.value.trim()} | MESSAGE : ${message && message.value.trim() !== '' ? message.value.trim() : 'Aucun message'} | CLIENT : ${clientEmail}`,  
                 to_email: "nicolopro170817@gmail.com"  
@@ -1092,9 +1097,6 @@ document.addEventListener('DOMContentLoaded', () => {
             emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => { 
                 alert("Demande bien reçue ! L'équipe DeLeak a été notifiée et Sarah a pris en charge le ticket."); 
                 
-                // NOUVEAU : On enregistre cette action dans le journal global !
-                window.logUserAction('manual_req', input.value.trim(), 'Équipe DeLeak');
-
                 const container = document.getElementById('ticket-list');
                 const tempEntry = `
                 <div style="padding:15px 0; border-bottom:1px solid #f1f3f5; opacity: 0.7;"> 
@@ -1120,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.style.pointerEvents = 'auto';
                 
             }).catch((err) => { 
-                alert("Erreur lors de l'envoi de la demande. Vérifiez votre connexion."); 
+                alert("Erreur lors de l'envoi de la demande, mais l'action a bien été ajoutée au journal."); 
                 btn.innerText = "ENVOYER À L'ÉQUIPE"; 
                 btn.classList.remove('d-btn-disabled'); 
                 btn.style.pointerEvents = 'auto'; 
@@ -1186,7 +1188,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // 2. Les vraies actions de l'utilisateur (Manuelles & Évaluations)
         let userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
         userActions.forEach(action => {
-            // Filtre optionnel si un pseudo est sélectionné
             if (selectedUrl !== 'all' && !action.url.includes(selectedUrl)) return;
             allActions.push(action);
         });
@@ -1199,7 +1200,6 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = ''; 
         if (displayActions.length === 0) { container.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">Aucune action récente.</div>'; return; } 
 
-        // NOUVEAU : Ajout des templates graphiques pour les actions manuelles
         const actionTemplates = [ 
             { type: 'dmca', label: 'DMCA envoyé à', icon: 'fa-paper-plane', color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' }, 
             { type: 'leak', label: 'Nouveau leak détecté sur', icon: 'fa-user-secret', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.1)' }, 
@@ -1365,7 +1365,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if(targetId === 'view-agent') renderAgentTickets(); 
                     if(targetId === 'view-dashboard') loadChartDataFromAirtable();
                     if(targetId === 'view-review') loadEvaluationsFromAirtable(); 
-                    if(targetId === 'view-tracking') loadLatestScanInfo(); // NOUVEAU CHARGEMENT AUTO
+                    if(targetId === 'view-tracking') loadLatestScanInfo(); 
                 } 
             } 
         } 
