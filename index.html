@@ -147,18 +147,18 @@
   input.d-input:focus, textarea.d-input:focus { border-color: var(--primary); background: #fff; } 
   input.d-input.error, textarea.d-input.error { border-color: var(--danger); background: #fff5f5; animation: shake 0.4s; } 
    
-  button.d-btn-primary { background: var(--primary); color: white; border: none; padding: 0 35px; border-radius: 12px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; transition: 0.2s; box-shadow: 0 10px 20px -10px var(--primary); } 
-  button.d-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 30px -10px var(--primary); } 
+  button.d-btn-primary, a.d-btn-primary { background: var(--primary); color: white; border: none; padding: 15px 35px; border-radius: 12px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; transition: 0.2s; box-shadow: 0 10px 20px -10px var(--primary); display:inline-block; } 
+  button.d-btn-primary:hover, a.d-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 30px -10px var(--primary); color:white; } 
 
-  .d-btn-secondary { background: transparent; color: var(--primary); border: 2px solid var(--primary); padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: 0.2s; width: 100%; margin-top: 15px; } 
-  .d-btn-secondary:hover { background: var(--primary-soft); } 
+  .d-btn-secondary { background: transparent; color: var(--primary); border: 2px solid var(--primary); padding: 12px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: 0.2s; width: 100%; margin-top: 15px; } 
+  .d-btn-secondary:hover { background: var(--primary-soft); color: var(--primary); } 
   .d-btn-disabled { opacity: 0.5; cursor: not-allowed; border-color: #ccc; color: #ccc; box-shadow: none !important; transform: none !important; } 
 
   /* Boutons Action Review */ 
   .d-btn-approve { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; } 
   .d-btn-approve:hover { background: #059669; }
   .d-btn-reject { background: var(--danger); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; } 
-  .d-btn-reject:hover { background: #dc2626; }
+  .d-btn-reject:hover { background: #dc2626; color:white; }
 
   /* --- ACTIONS & LISTS --- */ 
   .d-actions-container { margin-top: 20px; display: flex; flex-direction: column; gap: 0; max-height: 400px; overflow-y: auto; } 
@@ -363,9 +363,7 @@
       <div class="d-grid-2"> 
           <div class="d-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white;"> 
               <div style="display:flex; align-items:center; gap:15px;"> 
-                  
                   <img src="https://cdn.prod.website-files.com/6970e25065cc38099d4289a0/69abf9af58f491b62021f376_568538341_1379958544135827_3371672331449028474_n.jpg" alt="Sarah" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,0.5);"> 
-                  
                   <div> 
                       <h3 style="margin:0; color:white;">Sarah - Agent Senior</h3> 
                       <p style="margin:5px 0 0 0; font-size:13px; opacity:0.9;">● En ligne actuellement</p> 
@@ -379,8 +377,7 @@
 
           <div class="d-card"> 
               <h3 style="margin-top:0;">Tickets manuels récents</h3> 
-              <div id="ticket-list"> 
-                  </div> 
+              <div id="ticket-list"></div> 
           </div> 
       </div> 
     </div> 
@@ -388,8 +385,7 @@
     <div id="view-review" class="d-view d-hidden"> 
       <h1>Liens d'Évaluation</h1> 
       <h2>Vérifiez les comptes suspects détectés pour éviter les fausses suppressions.</h2> 
-      <div style="margin-top:20px;" id="review-container"> 
-          </div> 
+      <div style="margin-top:20px;" id="review-container"></div> 
     </div> 
 
     <div id="view-scanner" class="d-view d-hidden"> 
@@ -397,7 +393,6 @@
       <h2>Demandez une analyse asynchrone des bases de données pirates.</h2> 
        
       <div class="d-scan-box"> 
-        
         <div style="background: var(--primary-soft); border: 1px solid rgba(203, 108, 230, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; text-align: left;">
             <div>
                 <div style="font-weight: 700; color: var(--primary); font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Plan ELITE</div>
@@ -542,7 +537,7 @@
                 <div class="plan-list-item"><i class="fas fa-check"></i> 1 profil surveillé</div>
                 <div class="plan-list-item" style="color:#adb5bd"><i class="fas fa-times" style="color:#adb5bd"></i> Recherche IA Avancée</div>
             </div>
-            <button class="d-btn-secondary" onclick="forceMemberstackUpdate('prc_deleak-plan-d-butant-mensuel-748e0mz6')" style="width:100%; margin-top:30px;">Changer pour ce plan</button> 
+            <a href="#" class="d-btn-secondary ms-upgrade-btn" data-price-id="prc_deleak-plan-d-butant-mensuel-748e0mz6" style="display:flex; justify-content:center; align-items:center; text-decoration:none; box-sizing:border-box; width:100%; margin-top:30px;">Changer pour ce plan</a> 
           </div> 
 
           <div class="d-card" style="border: 2px solid var(--primary); position:relative; overflow:hidden; transform: scale(1.05); box-shadow: var(--shadow-lg); z-index: 2;"> 
@@ -556,9 +551,9 @@
                 <div class="plan-list-item"><i class="fas fa-check" style="color:var(--primary);"></i> <b>2 profils</b> surveillés</div>
                 <div class="plan-list-item"><i class="fas fa-check" style="color:var(--primary);"></i> <b>Recherche IA 24/7</b></div>
             </div>
-            <button class="d-btn-primary" onclick="forceMemberstackUpdate('prc_deleak-plan-medium-mensuel-gb8f0mn1')" style="width:100%; margin-top:30px; padding: 15px 0;">
+            <a href="#" class="d-btn-primary ms-upgrade-btn" data-price-id="prc_deleak-plan-medium-mensuel-gb8f0mn1" style="display:flex; justify-content:center; align-items:center; text-decoration:none; box-sizing:border-box; width:100%; margin-top:30px; padding: 15px 0;">
                 <i class="fas fa-bolt" style="margin-right:8px;"></i> Passer au Medium
-            </button> 
+            </a> 
           </div> 
 
           <div class="d-card" style="position:relative;"> 
@@ -571,7 +566,7 @@
                 <div class="plan-list-item"><i class="fas fa-check"></i> <b>4 profils</b> surveillés</div>
                 <div class="plan-list-item"><i class="fas fa-check"></i> <b>Agent Personnel (Manuel)</b></div>
             </div>
-            <button class="d-btn-secondary" onclick="forceMemberstackUpdate('prc_deleak-plan-pro-mensuel-728h0m70')" style="width:100%; margin-top:30px;">Changer pour ce plan</button> 
+            <a href="#" class="d-btn-secondary ms-upgrade-btn" data-price-id="prc_deleak-plan-pro-mensuel-728h0m70" style="display:flex; justify-content:center; align-items:center; text-decoration:none; box-sizing:border-box; width:100%; margin-top:30px;">Changer pour ce plan</a> 
           </div> 
 
       </div> 
@@ -590,7 +585,7 @@
                 <div class="plan-list-item"><i class="fas fa-check"></i> 1 profil surveillé</div>
                 <div class="plan-list-item" style="color:#adb5bd"><i class="fas fa-times" style="color:#adb5bd"></i> Recherche IA Avancée</div>
             </div>
-            <button class="d-btn-secondary" onclick="forceMemberstackUpdate('prc_deleak-plan-d-butant-annuel-nz9a06p4')" style="width:100%; margin-top:30px;">Changer pour ce plan</button> 
+            <a href="#" class="d-btn-secondary ms-upgrade-btn" data-price-id="prc_deleak-plan-d-butant-annuel-nz9a06p4" style="display:flex; justify-content:center; align-items:center; text-decoration:none; box-sizing:border-box; width:100%; margin-top:30px;">Changer pour ce plan</a> 
           </div> 
 
           <div class="d-card" style="border: 2px solid var(--primary); position:relative; overflow:hidden; transform: scale(1.05); box-shadow: var(--shadow-lg); z-index: 2;"> 
@@ -605,9 +600,9 @@
                 <div class="plan-list-item"><i class="fas fa-check" style="color:var(--primary);"></i> <b>2 profils</b> surveillés</div>
                 <div class="plan-list-item"><i class="fas fa-check" style="color:var(--primary);"></i> <b>Recherche IA 24/7</b></div>
             </div>
-            <button class="d-btn-primary" onclick="forceMemberstackUpdate('prc_deleak-plan-medium-annuel-u4200xqa')" style="width:100%; margin-top:30px; padding: 15px 0;">
+            <a href="#" class="d-btn-primary ms-upgrade-btn" data-price-id="prc_deleak-plan-medium-annuel-u4200xqa" style="display:flex; justify-content:center; align-items:center; text-decoration:none; box-sizing:border-box; width:100%; margin-top:30px; padding: 15px 0;">
                 <i class="fas fa-bolt" style="margin-right:8px;"></i> Passer au Medium
-            </button> 
+            </a> 
           </div> 
 
           <div class="d-card" style="position:relative;"> 
@@ -621,7 +616,7 @@
                 <div class="plan-list-item"><i class="fas fa-check"></i> <b>4 profils</b> surveillés</div>
                 <div class="plan-list-item"><i class="fas fa-check"></i> <b>Agent Personnel (Manuel)</b></div>
             </div>
-            <button class="d-btn-secondary" onclick="forceMemberstackUpdate('prc_deleak-plan-pro-annuel-7o210xsz')" style="width:100%; margin-top:30px;">Changer pour ce plan</button> 
+            <a href="#" class="d-btn-secondary ms-upgrade-btn" data-price-id="prc_deleak-plan-pro-annuel-7o210xsz" style="display:flex; justify-content:center; align-items:center; text-decoration:none; box-sizing:border-box; width:100%; margin-top:30px;">Changer pour ce plan</a> 
           </div> 
 
       </div>
@@ -631,7 +626,7 @@
           <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">
               Gérez votre moyen de paiement, téléchargez vos factures ou résiliez votre abonnement. L'accès restera actif jusqu'à la fin du cycle entamé.
           </p>
-          <button class="d-btn-reject" onclick="forceMemberstackPortal()" style="margin-top: 15px;">Accéder au portail sécurisé</button>
+          <a href="#" id="ms-portal-btn" class="d-btn-reject" style="display:inline-block; text-align:center; text-decoration:none; box-sizing:border-box; margin-top: 15px;">Accéder au portail sécurisé</a>
       </div>
     </div> 
 
@@ -721,39 +716,27 @@
 <script> 
 document.addEventListener('DOMContentLoaded', () => { 
 
-    // --- PARAMÈTRE DE L'ABONNEMENT ---
-    // Tu peux changer ce chiffre plus tard selon le plan du client (ex: 1, 2 ou 4)
     const MAX_PROFILES = 4;
     document.getElementById('ui-profiles-max').innerText = MAX_PROFILES;
     
-    // Set global pour stocker tous les pseudos uniques du client
     let globalUniqueProfiles = new Set();
 
-    // --- UTILS SAFE STRING ---
     function safeStr(val) {
         return val ? String(val) : "";
     }
 
-    // --- GESTION DES ACTIONS UTILISATEUR LOCALES ---
     window.logUserAction = function(type, url, siteContext) {
         let userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
-        userActions.push({
-            type: type,
-            url: url,
-            site: siteContext,
-            time: Date.now()
-        });
+        userActions.push({ type: type, url: url, site: siteContext, time: Date.now() });
         if(userActions.length > 20) userActions = userActions.slice(-20);
         localStorage.setItem('delic_user_actions', JSON.stringify(userActions));
         if(typeof renderActionsLog === 'function') renderActionsLog();
     };
 
-    // --- LECTURE SECURISEE DEPUIS WEBFLOW (URL) ---
     const urlParams = new URLSearchParams(window.location.search);
     const clientName = urlParams.get('name') || localStorage.getItem('deleak_clientName') || "Utilisateur Elite"; 
     const clientEmail = urlParams.get('email') || localStorage.getItem('deleak_clientEmail') || "contact@client.com"; 
 
-    // Mise à jour de l'interface avec les infos du client
     const nameDisplay = document.getElementById('sidebar-user-name'); 
     const initialDisplay = document.getElementById('sidebar-user-initial'); 
     const settingsName = document.getElementById('settings-name');
@@ -764,7 +747,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if(settingsName) settingsName.value = clientName;
     if(settingsEmail) settingsEmail.value = clientEmail;
 
-    // --- CONFIGURATION EMAILJS ET AIRTABLE --- 
     const EMAIL_PUBLIC_KEY = "moIJEBbO2F2sAEzGD"; 
     const EMAIL_SERVICE_ID = "service_cjqd13b"; 
     const EMAIL_TEMPLATE_ID = "template_cx3is9f"; 
@@ -776,14 +758,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const AIRTABLE_MANUAL_TABLE = "Demandes";
     const AIRTABLE_EVAL_TABLE = "Evaluations"; 
 
-    // --- DATA GLOBALES --- 
     let mainChart; 
     let globalChartRecords = []; 
     let scanHistory = JSON.parse(localStorage.getItem('delic_history')) || []; 
     const ctx = document.getElementById('mainChart').getContext('2d'); 
     const urlColors = ['#cb6ce6', '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']; 
 
-    // --- CHART INITIALIZATION --- 
     mainChart = new Chart(ctx, { 
         type: 'line', 
         data: { labels: [], datasets: [] }, 
@@ -794,7 +774,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } 
     }); 
 
-    // --- FONCTION FORMATAGE NOMBRES --- 
     function formatNumber(num) { 
         if (!num) return 0; 
         if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; 
@@ -802,7 +781,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return num; 
     } 
 
-    // --- CHART LOGIC FROM AIRTABLE --- 
     async function loadChartDataFromAirtable() {
         try {
             const formula = encodeURIComponent(`{Client_Email}='${clientEmail}'`);
@@ -846,15 +824,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         globalChartRecords.forEach(record => {
             if(!record.fields.Pseudos || record.fields.Leaks === undefined) return;
-            
             const pseudo = record.fields.Pseudos.trim();
             const recordDateStr = record.fields.Date ? record.fields.Date : record.createdTime;
             const dateObj = new Date(recordDateStr);
             const dateLabel = dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
             
-            if (!groupedData[pseudo]) {
-                groupedData[pseudo] = {};
-            }
+            if (!groupedData[pseudo]) { groupedData[pseudo] = {}; }
             if (groupedData[pseudo][dateLabel] === undefined || record.fields.Leaks > groupedData[pseudo][dateLabel]) {
                 groupedData[pseudo][dateLabel] = record.fields.Leaks;
             }
@@ -868,21 +843,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else { 
             for (const [pseudo, dateMap] of Object.entries(groupedData)) { 
                 let dataPoints = [];
-                
-                allLabels.forEach(label => {
-                    dataPoints.push(dateMap[label] !== undefined ? dateMap[label] : 0);
-                });
-                
+                allLabels.forEach(label => { dataPoints.push(dateMap[label] !== undefined ? dateMap[label] : 0); });
                 datasets.push({ 
-                    label: pseudo, 
-                    data: dataPoints, 
-                    borderColor: urlColors[colorIndex % urlColors.length], 
-                    backgroundColor: 'transparent', 
-                    borderWidth: 3, 
-                    tension: 0.4, 
-                    pointRadius: 3, 
-                    spanGaps: true, 
-                    fill: false 
+                    label: pseudo, data: dataPoints, borderColor: urlColors[colorIndex % urlColors.length], 
+                    backgroundColor: 'transparent', borderWidth: 3, tension: 0.4, pointRadius: 3, spanGaps: true, fill: false 
                 }); 
                 colorIndex++; 
             } 
@@ -894,14 +858,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('chart-filter').addEventListener('change', updateChartWithAirtable);
 
-    // --- STATS ENGINE VIA AIRTABLE --- 
     function updateDashboardStats() { 
         if(globalChartRecords.length === 0) {
             document.getElementById('ui-profiles-used').innerText = 0;
             return;
         }
 
-        // Met à jour la liste des profils uniques globale pour le contrôle de limite
         globalUniqueProfiles = new Set(globalChartRecords.map(r => r.fields.Pseudos).filter(Boolean));
         document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
 
@@ -937,7 +899,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('dash-total-urls').innerText = uniqueUrlSet.size; 
     }
 
-    // --- ANIMATION SWITCH MENSUEL / ANNUEL ---
     const billingToggle = document.getElementById('toggle-billing-cycle');
     const gridMensuel = document.getElementById('grid-mensuel');
     const gridAnnuel = document.getElementById('grid-annuel');
@@ -947,14 +908,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if(billingToggle) {
         billingToggle.addEventListener('change', (e) => {
             if(e.target.checked) {
-                // Annuel
                 gridMensuel.classList.add('d-hidden');
                 gridAnnuel.classList.remove('d-hidden');
                 labelMensuel.style.color = 'var(--text-muted)';
                 labelMensuel.style.fontWeight = '600';
                 labelAnnuel.style.color = 'var(--primary)';
             } else {
-                // Mensuel
                 gridAnnuel.classList.add('d-hidden');
                 gridMensuel.classList.remove('d-hidden');
                 labelMensuel.style.color = 'var(--primary)';
@@ -964,7 +923,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- MANUEL MENU TOGGLE --- 
     const btnManualToggle = document.getElementById('btn-manual-toggle'); 
     const manualSubmenu = document.getElementById('manual-submenu'); 
     const manualArrow = document.getElementById('manual-arrow'); 
@@ -982,7 +940,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }); 
     } 
 
-    // --- RENDRE LES TICKETS DE L'AGENT DEPUIS LE NOUVEAU TABLEAU AIRTABLE --- 
     async function renderAgentTickets() { 
         const container = document.getElementById('ticket-list'); 
         container.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> Chargement des requêtes...</div>';
@@ -991,19 +948,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const formula = encodeURIComponent(`{Client_Email}='${clientEmail}'`);
             const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_MANUAL_TABLE}?filterByFormula=${formula}`;
             
-            const response = await fetch(url, {
-                headers: { "Authorization": `Bearer ${AIRTABLE_PAT}` }
-            });
-
-            if(!response.ok) {
-                throw new Error(`Airtable a refusé l'accès (Erreur ${response.status}). Vérifie les droits de ton Token.`);
-            }
+            const response = await fetch(url, { headers: { "Authorization": `Bearer ${AIRTABLE_PAT}` } });
+            if(!response.ok) throw new Error(`Airtable a refusé l'accès.`);
 
             const data = await response.json();
             
             if (data.records && data.records.length > 0) {
                 window.globalAgentRecords = data.records;
-
                 container.innerHTML = ''; 
                 
                 const records = data.records.sort((a, b) => {
@@ -1014,35 +965,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 records.forEach(record => {
                     const fields = record.fields;
-                    
                     const submittedUrl = fields.URL || "Requête en cours...";
                     const status = fields.Status || "EN ATTENTE";
                     const compteRendu = fields.Compte_Rendu || "";
                     
-                    let statusColorBg = '#fef3c7'; 
-                    let statusColorText = '#b45309';
-                    if (status.toLowerCase().includes('resolu') || status.toLowerCase().includes('termin')) {
-                        statusColorBg = '#dcfce7'; 
-                        statusColorText = '#166534';
-                    } else if (status.toLowerCase().includes('rejet')) {
-                        statusColorBg = '#fee2e2'; 
-                        statusColorText = '#991b1b';
-                    }
+                    let statusColorBg = '#fef3c7'; let statusColorText = '#b45309';
+                    if (status.toLowerCase().includes('resolu') || status.toLowerCase().includes('termin')) { statusColorBg = '#dcfce7'; statusColorText = '#166534'; } 
+                    else if (status.toLowerCase().includes('rejet')) { statusColorBg = '#fee2e2'; statusColorText = '#991b1b'; }
                     
                     let shortUrl = submittedUrl;
                     if(shortUrl.length > 35) shortUrl = shortUrl.substring(0, 35) + '...';
 
                     let reportHtml = '';
-                    if (compteRendu) {
-                        reportHtml = `<div class="d-agent-report"><b>Note de Sarah :</b> ${compteRendu}</div>`;
-                    }
+                    if (compteRendu) reportHtml = `<div class="d-agent-report"><b>Note de Sarah :</b> ${compteRendu}</div>`;
 
                     container.innerHTML += ` 
                     <div style="padding:15px 0; border-bottom:1px solid #f1f3f5;"> 
                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div> 
-                                <div style="font-weight:600; color:var(--text-dark);">${shortUrl}</div> 
-                            </div> 
+                            <div><div style="font-weight:600; color:var(--text-dark);">${shortUrl}</div></div> 
                             <div style="background:${statusColorBg}; color:${statusColorText}; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700;">${status.toUpperCase()}</div> 
                         </div>
                         ${reportHtml}
@@ -1051,14 +991,11 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 container.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted); font-size:13px;">Aucune demande manuelle trouvée.</div>';
             }
-
         } catch (error) {
-            console.error("Erreur de chargement Agent :", error);
             container.innerHTML = `<div style="padding:15px; text-align:center; color:var(--danger); font-size:13px;">${error.message}</div>`;
         }
     } 
 
-    // --- RENDRE LES ÉVALUATIONS DEPUIS AIRTABLE ---
     async function loadEvaluationsFromAirtable() {
         const container = document.getElementById('review-container');
         if(!container) return;
@@ -1082,10 +1019,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const confiance = fields.Confiance || "N/A";
                     const id = record.id;
 
-                    let icon = "fas fa-exclamation-triangle";
-                    let color = "#be123c";
-                    let bg = "#ffe4e6";
-
+                    let icon = "fas fa-exclamation-triangle"; let color = "#be123c"; let bg = "#ffe4e6";
                     const platLower = plateforme.toLowerCase();
                     if(platLower.includes('instagram')) { icon = "fab fa-instagram"; color = "#E1306C"; bg = "#fce4ec"; }
                     else if(platLower.includes('tiktok')) { icon = "fab fa-tiktok"; color = "#000000"; bg = "#e2e8f0"; }
@@ -1114,55 +1048,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted); font-size:13px;">Super ! Vous n\'avez aucun compte en attente d\'évaluation.</div>';
             }
         } catch (error) {
-            console.error(error);
-            container.innerHTML = `<div style="padding:15px; text-align:center; color:var(--danger); font-size:13px;">Impossible de charger. Veuillez créer un tableau "Evaluations" sur Airtable avec une colonne "Client_Email".</div>`;
+            container.innerHTML = `<div style="padding:15px; text-align:center; color:var(--danger); font-size:13px;">Impossible de charger Airtable.</div>`;
         }
     }
 
-    // --- ENVOI DE LA DÉCISION D'ÉVALUATION ET MODIFICATION AIRTABLE ---
     window.sendEvaluationDecision = function(recordId, url, decision) {
-        
         window.logUserAction('eval_decision', url, decision.includes('GARDER') ? 'GARDER' : 'SUPPRIMER');
-
         const itemDiv = document.getElementById(`eval-${recordId}`);
         if(itemDiv) itemDiv.style.opacity = '0.5';
 
-        const emailData = {
-            url_target: `ÉVALUATION DU CLIENT | DÉCISION : ${decision} | URL DU COMPTE : ${url} | CLIENT: ${clientEmail}`,
-            to_email: "nicolopro170817@gmail.com"
-        };
+        const emailData = { url_target: `ÉVALUATION | DÉCISION : ${decision} | URL : ${url} | CLIENT: ${clientEmail}`, to_email: "nicolopro170817@gmail.com" };
         emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData); 
 
         const newStatus = decision.includes('GARDER') ? 'Validé' : 'À supprimer';
-        
         fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_EVAL_TABLE}/${recordId}`, {
             method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${AIRTABLE_PAT}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                fields: { "Status": newStatus }
-            })
+            headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fields: { "Status": newStatus } })
         }).then(response => {
             if(response.ok) {
                 alert(`Décision enregistrée ! Ce compte sera ${decision.includes('GARDER') ? 'sauvegardé' : 'supprimé'}.`);
-                
                 if(itemDiv) itemDiv.remove();
                 const container = document.getElementById('review-container');
-                if(container && container.children.length === 0) {
-                    container.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted); font-size:13px;">Super ! Vous n\'avez plus aucun compte en attente d\'évaluation.</div>';
-                }
-            } else {
-                throw new Error("Impossible de mettre à jour Airtable.");
-            }
+                if(container && container.children.length === 0) container.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted); font-size:13px;">Super ! Vous n\'avez plus aucun compte en attente d\'évaluation.</div>';
+            } else { throw new Error("Impossible de mettre à jour Airtable."); }
         }).catch(err => {
-            alert("Note : La base de données Airtable n'a pas pu être contactée pour cette démo, mais l'action a bien été enregistrée dans l'historique de votre tableau de bord.");
+            alert("Note : La base de données n'a pas pu être contactée, mais l'action a été enregistrée dans l'historique.");
             if(itemDiv) itemDiv.style.opacity = '1';
         });
     }
 
-    // --- CHARGER LA DERNIERE ANALYSE AUTOMATIQUEMENT ---
     async function loadLatestScanInfo() {
         const statusBox = document.getElementById('track-status-box');
         const loadingMsg = document.getElementById('track-loading');
@@ -1173,13 +1088,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if(!statusBox) return;
 
-        // Réinitialiser la vue
-        statusBox.style.display = 'block';
-        loadingMsg.style.display = 'block';
-        errorMsg.style.display = 'none';
-        emptyMsg.style.display = 'none';
-        pendingBox.classList.add('d-hidden');
-        resultsBox.classList.add('d-hidden');
+        statusBox.style.display = 'block'; loadingMsg.style.display = 'block'; errorMsg.style.display = 'none'; emptyMsg.style.display = 'none'; pendingBox.classList.add('d-hidden'); resultsBox.classList.add('d-hidden');
 
         try {
             const formula = encodeURIComponent(`{Client_Email}='${clientEmail}'`);
@@ -1192,7 +1101,6 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingMsg.style.display = 'none';
 
             if(data.records && data.records.length > 0) {
-                // Prendre le scan le plus récent
                 const sortedRecords = data.records.sort((a, b) => {
                     const dateA = new Date(a.fields.Date ? a.fields.Date : a.createdTime).getTime();
                     const dateB = new Date(b.fields.Date ? b.fields.Date : b.createdTime).getTime();
@@ -1202,9 +1110,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const latestRecord = sortedRecords[0].fields;
 
                 if(latestRecord.Status && String(latestRecord.Status).toLowerCase().includes("termin")) {
-                    statusBox.style.display = 'none'; // Cacher la boîte de chargement car c'est un succès
+                    statusBox.style.display = 'none'; 
                     document.getElementById('res-ticket').innerText = latestRecord.Pseudos || "Analyse récente";
-
                     document.getElementById('stat-infringements').innerText = formatNumber(latestRecord.Leaks);
                     document.getElementById('stat-loss').innerText = "$" + formatNumber(latestRecord.Pertes);
                     document.getElementById('stat-views').innerText = formatNumber(latestRecord.Vues);
@@ -1226,150 +1133,84 @@ document.addEventListener('DOMContentLoaded', () => {
                         const linksArray = latestRecord.Liens.split(',');
                         linksArray.forEach(l => {
                             const cleanL = l.trim();
-                            if(cleanL.length > 5) {
-                                linksHtml += `<li><a href="${cleanL}" target="_blank" style="color:#be123c; text-decoration:none;">${cleanL}</a></li>`;
-                            }
+                            if(cleanL.length > 5) linksHtml += `<li><a href="${cleanL}" target="_blank" style="color:#be123c; text-decoration:none;">${cleanL}</a></li>`;
                         });
-                    } else {
-                        linksHtml += "<li><span style='color:#6c757d; text-decoration:none;'>Aucun lien fourni.</span></li>";
-                    }
+                    } else { linksHtml += "<li><span style='color:#6c757d; text-decoration:none;'>Aucun lien fourni.</span></li>"; }
                     linksHtml += "</ul>";
                     document.getElementById('real-links-container').innerHTML = linksHtml;
 
-                    resultsBox.classList.remove('d-hidden');
-                    resultsBox.classList.add('d-visible');
+                    resultsBox.classList.remove('d-hidden'); resultsBox.classList.add('d-visible');
 
-                    // Ajouter à l'historique local silencieusement
                     window.addScanToHistory(sortedRecords[0].id, latestRecord.Pseudos || "Recherche", latestRecord.Leaks || 0);
-
                 } else {
-                    pendingBox.classList.remove('d-hidden');
-                    pendingBox.classList.add('d-visible');
+                    pendingBox.classList.remove('d-hidden'); pendingBox.classList.add('d-visible');
                 }
-            } else {
-                emptyMsg.style.display = 'block';
-            }
-
+            } else { emptyMsg.style.display = 'block'; }
         } catch(err) {
-            loadingMsg.style.display = 'none';
-            errorMsg.style.display = 'block';
-            console.error("Détail de l'erreur:", err);
+            loadingMsg.style.display = 'none'; errorMsg.style.display = 'block';
         }
     }
 
-    // --- INITIALISATION SÉCURISÉE ---
-    try {
-        renderHistory();
-        generateReportCards();
-        updateUrlSelector();
-        renderActionsLog();
-    } catch(e) {
-        console.error("Erreur Init locale", e);
-    }
-    
-    loadChartDataFromAirtable();
-    renderAgentTickets();
-    loadEvaluationsFromAirtable(); 
+    try { renderHistory(); generateReportCards(); updateUrlSelector(); renderActionsLog(); } catch(e) { }
+    loadChartDataFromAirtable(); renderAgentTickets(); loadEvaluationsFromAirtable(); 
 
-    // --- DEMANDE MANUELLE --- 
     window.submitManualRequest = function() { 
         const input = document.getElementById('manual-input'); 
         const message = document.getElementById('manual-message'); 
         const btn = document.getElementById('btn-submit-manual'); 
          
         if(input.value.trim().length > 5) { 
-            btn.innerText = "ENVOI EN COURS..."; 
-            btn.classList.add('d-btn-disabled'); 
-            btn.style.pointerEvents = 'none'; 
-
+            btn.innerText = "ENVOI EN COURS..."; btn.classList.add('d-btn-disabled'); btn.style.pointerEvents = 'none'; 
             window.logUserAction('manual_req', input.value.trim(), 'Équipe DeLeak');
 
-            const emailData = {  
-                url_target: `DEMANDE MANUELLE | URL : ${input.value.trim()} | MESSAGE : ${message && message.value.trim() !== '' ? message.value.trim() : 'Aucun message'} | CLIENT : ${clientEmail}`,  
-                to_email: "nicolopro170817@gmail.com"  
-            }; 
+            const emailData = { url_target: `DEMANDE MANUELLE | URL : ${input.value.trim()} | MESSAGE : ${message && message.value.trim() !== '' ? message.value.trim() : 'Aucun message'} | CLIENT : ${clientEmail}`, to_email: "nicolopro170817@gmail.com" }; 
 
             emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => { 
                 alert("Demande bien reçue ! L'équipe DeLeak a été notifiée et Sarah a pris en charge le ticket."); 
-                
                 const container = document.getElementById('ticket-list');
                 const tempEntry = `
                 <div style="padding:15px 0; border-bottom:1px solid #f1f3f5; opacity: 0.7;"> 
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div> 
-                            <div style="font-weight:600; color:var(--text-dark);">${input.value.trim().substring(0,35)}...</div> 
-                            <div style="font-size:12px; color:var(--text-muted);">Soumission en cours...</div>
-                        </div> 
+                        <div><div style="font-weight:600; color:var(--text-dark);">${input.value.trim().substring(0,35)}...</div><div style="font-size:12px; color:var(--text-muted);">Soumission en cours...</div></div> 
                         <div style="background:#fef3c7; color:#b45309; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700;">ENVOYÉ</div> 
                     </div>
                 </div>`;
-                
-                if(container && (container.innerHTML.includes("Aucune demande") || container.innerHTML.includes("Erreur"))) {
-                    container.innerHTML = tempEntry;
-                } else if(container) {
-                    container.insertAdjacentHTML('afterbegin', tempEntry);
-                }
-                 
-                input.value = ""; 
-                if (message) message.value = "";  
-                btn.innerText = "ENVOYER À L'ÉQUIPE"; 
-                btn.classList.remove('d-btn-disabled'); 
-                btn.style.pointerEvents = 'auto';
-                
+                if(container && (container.innerHTML.includes("Aucune demande") || container.innerHTML.includes("Erreur"))) { container.innerHTML = tempEntry; } else if(container) { container.insertAdjacentHTML('afterbegin', tempEntry); }
+                input.value = ""; if (message) message.value = "";  
+                btn.innerText = "ENVOYER À L'ÉQUIPE"; btn.classList.remove('d-btn-disabled'); btn.style.pointerEvents = 'auto';
             }).catch((err) => { 
                 alert("Erreur lors de l'envoi de la demande, mais l'action a bien été ajoutée au journal."); 
-                btn.innerText = "ENVOYER À L'ÉQUIPE"; 
-                btn.classList.remove('d-btn-disabled'); 
-                btn.style.pointerEvents = 'auto'; 
+                btn.innerText = "ENVOYER À L'ÉQUIPE"; btn.classList.remove('d-btn-disabled'); btn.style.pointerEvents = 'auto'; 
             }); 
-        } else { 
-            alert("Veuillez entrer une URL valide."); 
-        } 
+        } else { alert("Veuillez entrer une URL valide."); } 
     }; 
 
-    // --- ACTIONS LOGIC --- 
     const fakeSites = ['fapeza.com', 'sorrymother.video', 'fappeningbook.com', 'thotsbay.ac', 'thefappening.plus', 'OnlyLeaks.com', 'ThotHub.org', 'Mega.nz', 'Telegram (Canal Privé)', 'SimpCity.su']; 
 
     function updateUrlSelector() { 
         const selector = document.getElementById('action-url-select'); 
         if(!selector) return;
         const currentVal = selector.value; 
-        
         const uniqueUrls = [...new Set(scanHistory.map(s => s.url).filter(Boolean))]; 
-        
         selector.innerHTML = '<option value="all">Toutes les URLs</option>'; 
         uniqueUrls.forEach(url => { 
             let shortLabel = String(url || "Scan").replace('https://', '').replace('http://', '').replace('www.', ''); 
             if(shortLabel.length > 25) shortLabel = shortLabel.substring(0, 25) + '...'; 
-            const option = document.createElement('option'); 
-            option.value = url; 
-            option.text = shortLabel; 
-            selector.appendChild(option); 
+            const option = document.createElement('option'); option.value = url; option.text = shortLabel; selector.appendChild(option); 
         }); 
         if(uniqueUrls.includes(currentVal)) selector.value = currentVal; 
     } 
 
     function renderActionsLog() { 
-        const container = document.getElementById('actions-list'); 
-        const selector = document.getElementById('action-url-select');
+        const container = document.getElementById('actions-list'); const selector = document.getElementById('action-url-select');
         if(!container || !selector) return;
-        
-        const selectedUrl = selector.value; 
-        const now = Date.now(); 
-        let allActions = []; 
+        const selectedUrl = selector.value; const now = Date.now(); let allActions = []; 
 
         scanHistory.forEach(scan => { 
             if (selectedUrl !== 'all' && scan.url !== selectedUrl) return; 
-            const scanTime = scan.timestamp || (now - 3600000); 
-            const elapsed = now - scanTime; 
-             
-            const safeUrl = String(scan.url || ""); 
+            const scanTime = scan.timestamp || (now - 3600000); const elapsed = now - scanTime; const safeUrl = String(scan.url || ""); 
             allActions.push({ url: safeUrl, type: 'leak', site: fakeSites[safeUrl.length % fakeSites.length], time: scanTime }); 
-
-            if (elapsed > 120000) { 
-                allActions.push({ url: safeUrl, type: 'dmca', site: fakeSites[(safeUrl.length + 1) % fakeSites.length], time: scanTime + 120000 }); 
-            } 
-
+            if (elapsed > 120000) allActions.push({ url: safeUrl, type: 'dmca', site: fakeSites[(safeUrl.length + 1) % fakeSites.length], time: scanTime + 120000 }); 
             if (elapsed > 600000) { 
                 const loops = Math.floor((elapsed - 600000) / 600000); 
                 for(let i = 0; i <= loops; i++) { 
@@ -1380,13 +1221,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }); 
 
         let userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
-        userActions.forEach(action => {
-            if (selectedUrl !== 'all' && !action.url.includes(selectedUrl)) return;
-            allActions.push(action);
-        });
+        userActions.forEach(action => { if (selectedUrl !== 'all' && !action.url.includes(selectedUrl)) return; allActions.push(action); });
 
-        allActions.sort((a, b) => b.time - a.time); 
-        const displayActions = allActions.slice(0, 8); 
+        allActions.sort((a, b) => b.time - a.time); const displayActions = allActions.slice(0, 8); 
 
         container.innerHTML = ''; 
         if (displayActions.length === 0) { container.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">Aucune action récente.</div>'; return; } 
@@ -1400,77 +1237,42 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
         displayActions.forEach(action => { 
-            const template = actionTemplates.find(a => a.type === action.type); 
-            if(!template) return;
+            const template = actionTemplates.find(a => a.type === action.type); if(!template) return;
             const timeAgo = Math.floor((now - action.time) / 60000); 
             let timeText = timeAgo < 1 ? "À l'instant" : `Il y a ${timeAgo} min`; 
-            if (timeAgo > 60) {
-                const hours = Math.floor(timeAgo/60);
-                if(hours > 24) timeText = `Il y a ${Math.floor(hours/24)}j`;
-                else timeText = `Il y a ${hours}h`;
-            } 
-            let shortUrl = String(action.url || "Scan").replace('https://', '').replace('www.', ''); 
-            if(shortUrl.length > 25) shortUrl = shortUrl.substring(0, 25) + '...'; 
+            if (timeAgo > 60) { const hours = Math.floor(timeAgo/60); if(hours > 24) timeText = `Il y a ${Math.floor(hours/24)}j`; else timeText = `Il y a ${hours}h`; } 
+            let shortUrl = String(action.url || "Scan").replace('https://', '').replace('www.', ''); if(shortUrl.length > 25) shortUrl = shortUrl.substring(0, 25) + '...'; 
 
             let siteDisplay = action.site;
-            if(action.type === 'eval_decision') {
-               let colorDec = action.site.includes('GARDER') ? '#10b981' : '#ef4444';
-               siteDisplay = `<span style="color:${colorDec}; font-weight:bold;">[${action.site}]</span>`;
-            } else {
-               siteDisplay = `<span style="color:${template.color}">${action.site}</span>`;
-            }
+            if(action.type === 'eval_decision') { let colorDec = action.site.includes('GARDER') ? '#10b981' : '#ef4444'; siteDisplay = `<span style="color:${colorDec}; font-weight:bold;">[${action.site}]</span>`; } 
+            else { siteDisplay = `<span style="color:${template.color}">${action.site}</span>`; }
 
             container.innerHTML += ` 
             <div class="d-action-row"> 
-                <div style="display:flex; align-items:center; flex:1;"> 
-                    <div class="d-action-icon-box" style="background:${template.bg}; color:${template.color}"><i class="fas ${template.icon}"></i></div> 
-                    <div class="d-action-content"><p class="d-action-title">${template.label} ${siteDisplay}</p><p class="d-action-meta">Concerne : ${shortUrl}</p></div> 
-                </div> 
+                <div style="display:flex; align-items:center; flex:1;"><div class="d-action-icon-box" style="background:${template.bg}; color:${template.color}"><i class="fas ${template.icon}"></i></div><div class="d-action-content"><p class="d-action-title">${template.label} ${siteDisplay}</p><p class="d-action-meta">Concerne : ${shortUrl}</p></div></div> 
                 <div class="d-action-time">${timeText}</div> 
             </div>`; 
         }); 
     } 
 
-    const actionUrlSelect = document.getElementById('action-url-select');
-    if(actionUrlSelect) actionUrlSelect.addEventListener('change', renderActionsLog); 
+    if(document.getElementById('action-url-select')) document.getElementById('action-url-select').addEventListener('change', renderActionsLog); 
 
-    // --- RAPPORTS LOGIC --- 
     function generateReportCards() { 
-        const container = document.getElementById('reports-grid'); 
-        if(!container) return;
-        container.innerHTML = ''; 
-        const now = new Date(); 
-        const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']; 
+        const container = document.getElementById('reports-grid'); if(!container) return; container.innerHTML = ''; 
+        const now = new Date(); const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']; 
          
         for (let i = 0; i < 6; i++) { 
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1); 
-            const monthName = months[d.getMonth()]; 
-            const year = d.getFullYear(); 
-            
-            const historyForMonth = scanHistory.filter(s => {
-                const dateStr = safeStr(s.dateFull);
-                return dateStr.toLowerCase().includes(monthName.toLowerCase()) && dateStr.includes(year.toString());
-            }); 
-            
-            const totalScansMonth = historyForMonth.length; 
-            const totalLeaksMonth = historyForMonth.reduce((acc, curr) => acc + parseInt(curr.leaks || 0), 0); 
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1); const monthName = months[d.getMonth()]; const year = d.getFullYear(); 
+            const historyForMonth = scanHistory.filter(s => { const dateStr = safeStr(s.dateFull); return dateStr.toLowerCase().includes(monthName.toLowerCase()) && dateStr.includes(year.toString()); }); 
+            const totalScansMonth = historyForMonth.length; const totalLeaksMonth = historyForMonth.reduce((acc, curr) => acc + parseInt(curr.leaks || 0), 0); 
              
-            const manualsMonth = (window.globalAgentRecords || []).filter(r => {
-                const dateObj = new Date(r.fields.Date ? r.fields.Date : r.createdTime);
-                return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === monthName.toLowerCase() && dateObj.getFullYear().toString() === year.toString();
-            }).length;
-
+            const manualsMonth = (window.globalAgentRecords || []).filter(r => { const dateObj = new Date(r.fields.Date ? r.fields.Date : r.createdTime); return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === monthName.toLowerCase() && dateObj.getFullYear().toString() === year.toString(); }).length;
             const userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
-            const evalsMonth = userActions.filter(a => {
-                if(a.type !== 'eval_decision') return false;
-                const dateObj = new Date(a.time);
-                return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === monthName.toLowerCase() && dateObj.getFullYear().toString() === year.toString();
-            }).length;
+            const evalsMonth = userActions.filter(a => { if(a.type !== 'eval_decision') return false; const dateObj = new Date(a.time); return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === monthName.toLowerCase() && dateObj.getFullYear().toString() === year.toString(); }).length;
 
             const hasData = (totalScansMonth + manualsMonth + evalsMonth) > 0; 
             const btnClass = hasData ? 'd-btn-secondary' : 'd-btn-secondary d-btn-disabled'; 
-            const statusColor = hasData ? 'var(--success)' : '#ccc'; 
-            const statusText = hasData ? '● Disponible' : '○ Aucune donnée'; 
+            const statusColor = hasData ? 'var(--success)' : '#ccc'; const statusText = hasData ? '● Disponible' : '○ Aucune donnée'; 
 
             container.innerHTML += ` 
             <div class="d-card" style="text-align:center;"> 
@@ -1484,75 +1286,34 @@ document.addEventListener('DOMContentLoaded', () => {
     } 
 
     window.downloadRealReport = function(month, year, scans, leaks) { 
-        
-        const scanDetails = scanHistory.filter(s => {
-            const dateStr = safeStr(s.dateFull);
-            return dateStr.toLowerCase().includes(month.toLowerCase()) && dateStr.includes(year.toString());
-        }).map(s => `- ${safeStr(s.dateFull)} : ${safeStr(s.url)} (${s.leaks} fuites)`).join('\n'); 
+        const scanDetails = scanHistory.filter(s => { const dateStr = safeStr(s.dateFull); return dateStr.toLowerCase().includes(month.toLowerCase()) && dateStr.includes(year.toString()); }).map(s => `- ${safeStr(s.dateFull)} : ${safeStr(s.url)} (${s.leaks} fuites)`).join('\n'); 
 
         let manualDetails = "";
         if(window.globalAgentRecords) {
-            const manualsMonth = window.globalAgentRecords.filter(r => {
-                const dateObj = new Date(r.fields.Date ? r.fields.Date : r.createdTime);
-                return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === month.toLowerCase() && dateObj.getFullYear().toString() === year.toString();
-            });
-            manualDetails = manualsMonth.map(r => {
-                const f = r.fields;
-                const d = new Date(f.Date ? f.Date : r.createdTime).toLocaleDateString('fr-FR');
-                const url = f.URL || "N/A";
-                const status = f.Status || "En attente";
-                const rep = f.Compte_Rendu || "Aucune réponse de l'agent pour le moment.";
-                return `- Date: ${d}\n  Cible: ${url}\n  Statut: ${status.toUpperCase()}\n  Réponse de l'agent: ${rep}`;
-            }).join('\n\n');
+            const manualsMonth = window.globalAgentRecords.filter(r => { const dateObj = new Date(r.fields.Date ? r.fields.Date : r.createdTime); return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === month.toLowerCase() && dateObj.getFullYear().toString() === year.toString(); });
+            manualDetails = manualsMonth.map(r => { const f = r.fields; const d = new Date(f.Date ? f.Date : r.createdTime).toLocaleDateString('fr-FR'); const url = f.URL || "N/A"; const status = f.Status || "En attente"; const rep = f.Compte_Rendu || "Aucune réponse de l'agent pour le moment."; return `- Date: ${d}\n  Cible: ${url}\n  Statut: ${status.toUpperCase()}\n  Réponse de l'agent: ${rep}`; }).join('\n\n');
         }
         if(!manualDetails) manualDetails = "Aucune demande manuelle ce mois-ci.";
 
         let evalDetails = "";
         const userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
-        const evalsMonth = userActions.filter(a => {
-            if(a.type !== 'eval_decision') return false;
-            const dateObj = new Date(a.time);
-            return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === month.toLowerCase() && dateObj.getFullYear().toString() === year.toString();
-        });
-        evalDetails = evalsMonth.map(a => {
-            const d = new Date(a.time).toLocaleDateString('fr-FR');
-            const url = a.url || "N/A";
-            const decision = a.site || "N/A";
-            return `- Date: ${d}\n  Lien: ${url}\n  Décision choisie: ${decision}`;
-        }).join('\n\n');
+        const evalsMonth = userActions.filter(a => { if(a.type !== 'eval_decision') return false; const dateObj = new Date(a.time); return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === month.toLowerCase() && dateObj.getFullYear().toString() === year.toString(); });
+        evalDetails = evalsMonth.map(a => { const d = new Date(a.time).toLocaleDateString('fr-FR'); const url = a.url || "N/A"; const decision = a.site || "N/A"; return `- Date: ${d}\n  Lien: ${url}\n  Décision choisie: ${decision}`; }).join('\n\n');
         if(!evalDetails) evalDetails = "Aucune évaluation traitée ce mois-ci.";
 
         const text = `=================================================\n` +
                      ` RAPPORT D'ACTIVITÉ DELEAK - ${month.toUpperCase()} ${year}\n` +
                      `=================================================\n\n` +
-                     `[ SCANS AUTOMATIQUES ]\n` +
-                     `Total des scans lancés : ${scans}\n` +
-                     `Nouvelles fuites détectées : ${leaks}\n\n` +
-                     `Détails :\n${scanDetails || "Aucun scan automatique ce mois-ci."}\n\n` +
-                     `-------------------------------------------------\n\n` +
-                     `[ DEMANDES MANUELLES & AGENT PERSONNEL ]\n\n` +
-                     `${manualDetails}\n\n` +
-                     `-------------------------------------------------\n\n` +
-                     `[ ÉVALUATIONS DE COMPTES (GARDER / SUPPRIMER) ]\n\n` +
-                     `${evalDetails}\n\n` +
-                     `=================================================\n` +
-                     `Rapport généré automatiquement par DeLeak.`;
+                     `[ SCANS AUTOMATIQUES ]\n` + `Total des scans lancés : ${scans}\n` + `Nouvelles fuites détectées : ${leaks}\n\n` + `Détails :\n${scanDetails || "Aucun scan automatique ce mois-ci."}\n\n` +
+                     `-------------------------------------------------\n\n` + `[ DEMANDES MANUELLES & AGENT PERSONNEL ]\n\n` + `${manualDetails}\n\n` +
+                     `-------------------------------------------------\n\n` + `[ ÉVALUATIONS DE COMPTES (GARDER / SUPPRIMER) ]\n\n` + `${evalDetails}\n\n` +
+                     `=================================================\n` + `Rapport généré automatiquement par DeLeak.`;
 
-        const filename = `Rapport_DeLeak_${month}_${year}.txt`; 
-        const element = document.createElement('a'); 
-        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); 
-        element.setAttribute('download', filename); 
-        element.style.display = 'none'; 
-        document.body.appendChild(element); 
-        element.click(); 
-        document.body.removeChild(element); 
+        const filename = `Rapport_DeLeak_${month}_${year}.txt`; const element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', filename); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); 
     }; 
 
-    // --- GENERAL LOGIC --- 
     function renderHistory() { 
-        const container = document.getElementById('history-container'); 
-        if(!container) return;
-        container.innerHTML = ''; 
+        const container = document.getElementById('history-container'); if(!container) return; container.innerHTML = ''; 
         if (scanHistory.length === 0) { container.innerHTML = `<div class="d-card d-empty-state"><i class="fas fa-folder-open" style="font-size:40px; color:var(--border-light); margin-bottom:20px;"></i><p>Aucun rapport d'analyse récent.</p></div>`; return; } 
         scanHistory.forEach((scan, index) => { 
             container.innerHTML += `<div class="d-history-item"><div class="d-history-left"><div class="d-history-icon"><i class="fas fa-file-contract"></i></div><div class="d-history-info"><h4 style="margin:0; font-size:14px; color:var(--text-dark);">${safeStr(scan.url)}</h4><p style="margin:2px 0 0 0; font-size:12px; color:var(--text-muted);">${safeStr(scan.dateFull)}</p></div></div><div class="d-history-right"><div style="text-align:right"><span class="d-label">Fuites</span><div style="font-weight:700; font-size:16px; color:#cb6ce6">${scan.leaks}</div></div><button class="d-btn-delete" data-index="${index}"><i class="fas fa-trash-alt"></i></button></div></div>`; 
@@ -1560,42 +1321,19 @@ document.addEventListener('DOMContentLoaded', () => {
     } 
 
     function deleteHistoryItem(index) { 
-        scanHistory.splice(index, 1); 
-        localStorage.setItem('delic_history', JSON.stringify(scanHistory)); 
-        renderHistory(); 
-        updateDashboardStatsFallback(); 
-        updateUrlSelector();
-        renderActionsLog();
+        scanHistory.splice(index, 1); localStorage.setItem('delic_history', JSON.stringify(scanHistory)); renderHistory(); updateDashboardStatsFallback(); updateUrlSelector(); renderActionsLog(); 
     } 
 
     window.addScanToHistory = function(ticketId, url, leaks) { 
         let existingScan = scanHistory.find(s => s.ticket === ticketId); 
         if (!existingScan) { 
             const now = new Date(); 
-            scanHistory.unshift({  
-                ticket: ticketId, 
-                url: url,  
-                leaks: leaks,  
-                timestamp: now.getTime(), 
-                time: now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute:'2-digit' }), 
-                dateFull: now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour:'2-digit', minute:'2-digit' }),  
-                dateShort: now.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })  
-            }); 
-        } else { 
-            existingScan.leaks = leaks; 
-        } 
-        localStorage.setItem('delic_history', JSON.stringify(scanHistory)); 
-        renderHistory(); 
-        updateDashboardStatsFallback(); 
-        updateUrlSelector();
-        renderActionsLog();
+            scanHistory.unshift({ ticket: ticketId, url: url, leaks: leaks, timestamp: now.getTime(), time: now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute:'2-digit' }), dateFull: now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour:'2-digit', minute:'2-digit' }), dateShort: now.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) }); 
+        } else { existingScan.leaks = leaks; } 
+        localStorage.setItem('delic_history', JSON.stringify(scanHistory)); renderHistory(); updateDashboardStatsFallback(); updateUrlSelector(); renderActionsLog(); 
     } 
 
-    // Rendu Initial forcé
-    setTimeout(() => {
-        updateUrlSelector();
-        renderActionsLog();
-    }, 500);
+    setTimeout(() => { updateUrlSelector(); renderActionsLog(); }, 500);
 
     // --- NAVIGATION SYSTEM UPDATED --- 
     document.body.addEventListener('click', (e) => { 
@@ -1605,13 +1343,11 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.d-view').forEach(v => { v.classList.remove('d-visible'); v.classList.add('d-hidden'); }); 
              
             btn.classList.add('active'); 
-             
             const targetId = btn.getAttribute('data-target'); 
             if(targetId) { 
                 const targetView = document.getElementById(targetId); 
                 if(targetView) { 
-                    targetView.classList.remove('d-hidden'); 
-                    targetView.classList.add('d-visible'); 
+                    targetView.classList.remove('d-hidden'); targetView.classList.add('d-visible'); 
                     if(targetId === 'view-agent') renderAgentTickets(); 
                     if(targetId === 'view-dashboard') loadChartDataFromAirtable();
                     if(targetId === 'view-review') loadEvaluationsFromAirtable(); 
@@ -1622,160 +1358,145 @@ document.addEventListener('DOMContentLoaded', () => {
          
         const deleteBtn = e.target.closest('.d-btn-delete'); 
         if (deleteBtn) { deleteHistoryItem(deleteBtn.getAttribute('data-index')); } 
-
         const submitBtn = e.target.closest('#btn-submit-manual');
         if (submitBtn) { submitManualRequest(); }
         
-        // --- SOUMISSION DES NOUVEAUX RÉSEAUX SOCIAUX ---
         const submitSocialsBtn = e.target.closest('#btn-submit-socials');
         if(submitSocialsBtn) {
-            const ig = document.getElementById('social-ig').value.trim();
-            const tk = document.getElementById('social-tk').value.trim();
-            const sc = document.getElementById('social-sc').value.trim();
-            const yt = document.getElementById('social-yt').value.trim();
+            const ig = document.getElementById('social-ig').value.trim(); const tk = document.getElementById('social-tk').value.trim();
+            const sc = document.getElementById('social-sc').value.trim(); const yt = document.getElementById('social-yt').value.trim();
+            if(!ig && !tk && !sc && !yt) { alert("Veuillez renseigner au moins un réseau social."); return; }
 
-            if(!ig && !tk && !sc && !yt) {
-                alert("Veuillez renseigner au moins un réseau social.");
-                return;
-            }
+            submitSocialsBtn.innerText = "ENREGISTREMENT..."; submitSocialsBtn.classList.add('d-btn-disabled'); submitSocialsBtn.style.pointerEvents = 'none';
 
-            submitSocialsBtn.innerText = "ENREGISTREMENT...";
-            submitSocialsBtn.classList.add('d-btn-disabled');
-            submitSocialsBtn.style.pointerEvents = 'none';
-
-            const emailData = {
-                url_target: `MISE À JOUR RÉSEAUX SOCIAUX | CLIENT : ${clientEmail}\n\nInstagram: ${ig || 'Non renseigné'}\nTikTok: ${tk || 'Non renseigné'}\nSnapchat: ${sc || 'Non renseigné'}\nYouTube: ${yt || 'Non renseigné'}`,
-                to_email: "nicolopro170817@gmail.com"
-            };
+            const emailData = { url_target: `MISE À JOUR RÉSEAUX SOCIAUX | CLIENT : ${clientEmail}\n\nInstagram: ${ig || 'Non renseigné'}\nTikTok: ${tk || 'Non renseigné'}\nSnapchat: ${sc || 'Non renseigné'}\nYouTube: ${yt || 'Non renseigné'}`, to_email: "nicolopro170817@gmail.com" };
 
             emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => {
                 alert("Réseaux sociaux enregistrés avec succès ! Notre équipe a été notifiée.");
                 submitSocialsBtn.innerText = "RÉSEAUX ENREGISTRÉS ✓";
-                
-                setTimeout(() => {
-                    submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX";
-                    submitSocialsBtn.classList.remove('d-btn-disabled');
-                    submitSocialsBtn.style.pointerEvents = 'auto';
-                }, 3000);
+                setTimeout(() => { submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX"; submitSocialsBtn.classList.remove('d-btn-disabled'); submitSocialsBtn.style.pointerEvents = 'auto'; }, 3000);
             }).catch((err) => {
                 alert("Erreur lors de l'enregistrement. Vérifiez votre connexion.");
-                submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX";
-                submitSocialsBtn.classList.remove('d-btn-disabled');
-                submitSocialsBtn.style.pointerEvents = 'auto';
+                submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX"; submitSocialsBtn.classList.remove('d-btn-disabled'); submitSocialsBtn.style.pointerEvents = 'auto';
             });
         }
         
-        // Clic sur "Nouveau Scan" -> VERIFICATION DES LIMITES ET ENVOI
         const startScanBtn = e.target.closest('#btn-start-scan');
         if(startScanBtn) {
-            const input = document.getElementById('scan-input'); 
-            const pseudoValue = input.value.trim(); 
-            const resultBox = document.getElementById('scan-ticket-result'); 
-
+            const input = document.getElementById('scan-input'); const pseudoValue = input.value.trim(); const resultBox = document.getElementById('scan-ticket-result'); 
             if(pseudoValue.length < 3) { 
-                input.classList.add('error'); input.placeholder = "⚠️ Minimum 3 caractères"; 
-                setTimeout(() => { input.classList.remove('error'); input.placeholder = "Pseudos à rechercher..."; }, 2000); 
-                return; 
+                input.classList.add('error'); input.placeholder = "⚠️ Minimum 3 caractères"; setTimeout(() => { input.classList.remove('error'); input.placeholder = "Pseudos à rechercher..."; }, 2000); return; 
             } 
             
-            // --- VÉRIFICATION DE LA LIMITE DE PROFILS ---
             const requestedProfiles = pseudoValue.split(',').map(s => s.trim()).filter(s => s.length > 0);
-            let projectedSet = new Set(globalUniqueProfiles);
-            requestedProfiles.forEach(p => projectedSet.add(p));
-
+            let projectedSet = new Set(globalUniqueProfiles); requestedProfiles.forEach(p => projectedSet.add(p));
             if(projectedSet.size > MAX_PROFILES) {
                 input.classList.add('error');
                 alert(`⚠️ Limite atteinte !\n\nVotre abonnement limite la surveillance à ${MAX_PROFILES} profil(s) unique(s).\n\nVous avez actuellement ${globalUniqueProfiles.size} profil(s) actif(s) et vous essayez d'en lancer ${projectedSet.size} au total.\n\nVeuillez passer au plan supérieur dans l'onglet "Abonnement".`);
-                setTimeout(() => { input.classList.remove('error'); }, 2000);
-                return;
+                setTimeout(() => { input.classList.remove('error'); }, 2000); return;
             }
-            // ---------------------------------------------
 
-            startScanBtn.innerText = "LANCEMENT..."; 
-            startScanBtn.classList.add('d-btn-disabled'); 
-            startScanBtn.style.pointerEvents = 'none'; 
-
-            const emailData = {  
-                url_target: `NOUVELLE ANALYSE DEMANDÉE | PSEUDOS : ${pseudoValue} | CLIENT : ${clientEmail}`,  
-                to_email: "nicolopro170817@gmail.com"  
-            }; 
+            startScanBtn.innerText = "LANCEMENT..."; startScanBtn.classList.add('d-btn-disabled'); startScanBtn.style.pointerEvents = 'none'; 
+            const emailData = { url_target: `NOUVELLE ANALYSE DEMANDÉE | PSEUDOS : ${pseudoValue} | CLIENT : ${clientEmail}`, to_email: "nicolopro170817@gmail.com" }; 
 
             emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => { 
-                startScanBtn.innerText = "LANCER L'ANALYSE"; 
-                startScanBtn.classList.remove('d-btn-disabled'); 
-                startScanBtn.style.pointerEvents = 'auto'; 
-                input.value = ""; 
-                resultBox.classList.remove('d-hidden'); 
-                resultBox.classList.add('d-visible'); 
-                
-                // On met à jour manuellement la limite UI pour faire joli
-                requestedProfiles.forEach(p => globalUniqueProfiles.add(p));
-                document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
-
+                startScanBtn.innerText = "LANCER L'ANALYSE"; startScanBtn.classList.remove('d-btn-disabled'); startScanBtn.style.pointerEvents = 'auto'; 
+                input.value = ""; resultBox.classList.remove('d-hidden'); resultBox.classList.add('d-visible'); 
+                requestedProfiles.forEach(p => globalUniqueProfiles.add(p)); document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
             }).catch((err) => { 
                 alert("Erreur lors de la création de la demande. Vérifiez votre connexion."); 
-                startScanBtn.innerText = "LANCER L'ANALYSE"; 
-                startScanBtn.classList.remove('d-btn-disabled'); 
-                startScanBtn.style.pointerEvents = 'auto'; 
+                startScanBtn.innerText = "LANCER L'ANALYSE"; startScanBtn.classList.remove('d-btn-disabled'); startScanBtn.style.pointerEvents = 'auto'; 
             }); 
         }
     }); 
 
-    // --- MAGIE MEMBERSTACK (SOLUTION ANTI-BLOCAGE JAVASCRIPT) ---
-    window.forceMemberstackUpdate = async function(priceId) {
-        try {
-            if(typeof window.$memberstackDom === 'undefined') {
-                alert("Erreur : Le système de paiement Memberstack n'est pas chargé sur cette page.");
-                return;
-            }
-            const { data: member } = await window.$memberstackDom.getCurrentMember();
-            if(!member) {
-                alert("Vous n'êtes pas connecté à un compte ! Veuillez vous connecter d'abord.");
-                return;
-            }
+    // =========================================================================
+    // HACK MEMBERSTACK ULTIME (ANTI-BLOCAGE WEBFLOW)
+    // =========================================================================
+    const upgradeBtns = document.querySelectorAll('.ms-upgrade-btn');
+    upgradeBtns.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const priceId = btn.getAttribute('data-price-id');
+            if(!priceId) return;
             
-            // Vérifie si le membre a déjà un plan actif avec une carte enregistrée
-            const hasPlan = member.planConnections && member.planConnections.length > 0;
-            
-            // Création d'un lien invisible qui force l'ouverture de la popup Stripe de force
-            const a = document.createElement('a');
-            if(hasPlan) {
-                a.setAttribute('data-ms-price:update', priceId); // Met à jour le plan
-            } else {
-                a.setAttribute('data-ms-price:add', priceId); // Demande la carte bleue
-            }
-            
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => a.remove(), 500); // On efface les traces
-            
-        } catch(e) {
-            console.error(e);
-            alert("Erreur de communication avec le serveur de paiement. Avez-vous une carte de crédit active ?");
-        }
-    };
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
+            btn.style.opacity = '0.7';
 
-    window.forceMemberstackPortal = async function() {
-        try {
-            if(typeof window.$memberstackDom === 'undefined') return;
-            const { data: member } = await window.$memberstackDom.getCurrentMember();
-            
-            // S'il n'a pas de plan, Stripe refuse d'ouvrir le portail
-            if(!member || !member.planConnections || member.planConnections.length === 0) {
-                alert("Vous n'avez pas encore d'abonnement actif. Le portail de facturation est donc vide pour le moment.");
-                return;
+            try {
+                if(!window.$memberstackDom) {
+                    alert("Memberstack n'est pas chargé sur cette page.");
+                    btn.innerHTML = originalText;
+                    return;
+                }
+                const { data: member } = await window.$memberstackDom.getCurrentMember();
+                
+                if(!member) {
+                    alert("Erreur : Veuillez vous connecter pour modifier votre abonnement.");
+                    btn.innerHTML = originalText;
+                    return;
+                }
+
+                // Vérifier si le membre a déjà un plan actif avec une carte enregistrée
+                const hasPlan = member.planConnections && member.planConnections.length > 0;
+                
+                // Création d'un lien invisible qui force l'ouverture de la popup Stripe
+                const triggerTag = document.createElement('a');
+                triggerTag.href = "#";
+                if(hasPlan) {
+                    triggerTag.setAttribute('data-ms-price:update', priceId);
+                } else {
+                    triggerTag.setAttribute('data-ms-price:add', priceId);
+                }
+                
+                document.body.appendChild(triggerTag);
+                triggerTag.click();
+                triggerTag.remove();
+                
+                setTimeout(() => {
+                    btn.innerHTML = 'Redirection...';
+                    btn.style.opacity = '1';
+                }, 1000);
+
+            } catch(error) {
+                console.error("Stripe Error:", error);
+                alert("Une erreur s'est produite. Avez-vous un moyen de paiement actif ?");
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
             }
+        });
+    });
+
+    const portalBtn = document.getElementById('ms-portal-btn');
+    if(portalBtn) {
+        portalBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const originalText = portalBtn.innerHTML;
+            portalBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ouverture...';
             
-            const a = document.createElement('a');
-            a.setAttribute('data-ms-action', 'customer-portal');
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => a.remove(), 500);
-            
-        } catch(e) {
-            console.error(e);
-        }
-    };
+            try {
+                if(!window.$memberstackDom) return;
+                const { data: member } = await window.$memberstackDom.getCurrentMember();
+                
+                if(member && member.planConnections && member.planConnections.length > 0) {
+                    const triggerTag = document.createElement('a');
+                    triggerTag.href = "#";
+                    triggerTag.setAttribute('data-ms-action', 'customer-portal');
+                    document.body.appendChild(triggerTag);
+                    triggerTag.click();
+                    triggerTag.remove();
+                    setTimeout(() => portalBtn.innerHTML = originalText, 2000);
+                } else {
+                    alert("Vous n'avez aucun abonnement actif à gérer ou à résilier pour le moment.");
+                    portalBtn.innerHTML = originalText;
+                }
+            } catch(error) {
+                alert("Erreur de chargement du portail.");
+                portalBtn.innerHTML = originalText;
+            }
+        });
+    }
 
 }); 
 </script> 
