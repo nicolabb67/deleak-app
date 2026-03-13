@@ -341,9 +341,21 @@
     </div> 
 
     <div id="view-manual-request" class="d-view d-hidden"> 
-      <h1>Faire une demande de retrait manuelle à notre équipe</h1> 
+      <h1>Faire une demande de retrait manuelle</h1> 
       <h2>Signalez une URL que notre algorithme aurait manquée et laissez-nous un message.</h2> 
+      
       <div class="d-card" style="max-width: 600px;"> 
+          <div style="background: var(--primary-soft); border: 1px solid rgba(203, 108, 230, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; text-align: left;">
+              <div>
+                  <div style="font-weight: 700; color: var(--primary); font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" id="ui-manual-plan">Plan DÉBUTANT</div>
+                  <div style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">Demandes manuelles effectuées</div>
+              </div>
+              <div style="text-align: right;">
+                  <span style="font-size: 24px; font-weight: 800; color: var(--text-dark);" id="ui-manuals-used">0</span>
+                  <span style="font-size: 16px; font-weight: 600; color: var(--text-muted);">/ <span id="ui-manuals-max">20</span></span>
+              </div>
+          </div>
+
           <div class="d-input-group" style="flex-direction:column; gap:15px; margin-top:0;"> 
               <label class="d-label">URL du contenu pirate</label> 
               <input type="text" id="manual-input" class="d-input" placeholder="ex: https://forum-leaks.com/..." style="width:100%"> 
@@ -395,12 +407,12 @@
       <div class="d-scan-box"> 
         <div style="background: var(--primary-soft); border: 1px solid rgba(203, 108, 230, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; text-align: left;">
             <div>
-                <div style="font-weight: 700; color: var(--primary); font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Plan ELITE</div>
+                <div style="font-weight: 700; color: var(--primary); font-size: 14px; text-transform: uppercase; letter-spacing: 1px;" id="ui-plan-name">Plan DÉBUTANT</div>
                 <div style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">Profils (pseudos) autorisés</div>
             </div>
             <div style="text-align: right;">
                 <span style="font-size: 24px; font-weight: 800; color: var(--text-dark);" id="ui-profiles-used">0</span>
-                <span style="font-size: 16px; font-weight: 600; color: var(--text-muted);">/ <span id="ui-profiles-max">4</span></span>
+                <span style="font-size: 16px; font-weight: 600; color: var(--text-muted);">/ <span id="ui-profiles-max">1</span></span>
             </div>
         </div>
 
@@ -716,10 +728,56 @@
 <script> 
 document.addEventListener('DOMContentLoaded', () => { 
 
-    const MAX_PROFILES = 4;
-    document.getElementById('ui-profiles-max').innerText = MAX_PROFILES;
-    
+    // =========================================================================
+    // 1. GESTION DYNAMIQUE DES LIMITES D'ABONNEMENT
+    // =========================================================================
+    let MAX_PROFILES = 1;
+    let MAX_REQUESTS = 20;
+    let CURRENT_PLAN = "Débutant";
     let globalUniqueProfiles = new Set();
+
+    // Fonction pour appliquer les limites en fonction du plan
+    function setPlanLimits(planString) {
+        if (!planString) planString = "";
+        const planLower = planString.toLowerCase();
+        
+        if (planLower.includes("pro") || planLower.includes("728h0m70") || planLower.includes("7o210xsz")) {
+            MAX_PROFILES = 4;
+            MAX_REQUESTS = Infinity;
+            CURRENT_PLAN = "PRO";
+        } 
+        else if (planLower.includes("medium") || planLower.includes("gb8f0mn1") || planLower.includes("u4200xqa")) {
+            MAX_PROFILES = 2;
+            MAX_REQUESTS = 50;
+            CURRENT_PLAN = "MEDIUM";
+        } 
+        else {
+            MAX_PROFILES = 1;
+            MAX_REQUESTS = 20;
+            CURRENT_PLAN = "DÉBUTANT";
+        }
+
+        // Mise à jour de l'affichage dans le Scan
+        if(document.getElementById('ui-profiles-max')) document.getElementById('ui-profiles-max').innerText = MAX_PROFILES;
+        if(document.getElementById('ui-plan-name')) document.getElementById('ui-plan-name').innerText = "PLAN " + CURRENT_PLAN;
+        
+        // Mise à jour de l'affichage dans la Demande Manuelle
+        if(document.getElementById('ui-manual-plan')) document.getElementById('ui-manual-plan').innerText = "PLAN " + CURRENT_PLAN;
+        if(document.getElementById('ui-manuals-max')) document.getElementById('ui-manuals-max').innerText = MAX_REQUESTS === Infinity ? "∞" : MAX_REQUESTS;
+    }
+
+    // On regarde si on a déjà enregistré le plan, sinon par défaut on met Débutant
+    const urlPlan = new URLSearchParams(window.location.search).get('plan') || localStorage.getItem('deleak_plan') || '';
+    setPlanLimits(urlPlan);
+
+    // Écoute de Webflow : quand Webflow charge, il va nous dire quel est le vrai plan
+    window.addEventListener('message', function(event) {
+        if (typeof event.data === 'string' && event.data.startsWith('ms-plan-active:')) {
+            let planId = event.data.split(':')[1];
+            localStorage.setItem('deleak_plan', planId); // On sauvegarde pour les prochains rafraîchissements
+            setPlanLimits(planId);
+        }
+    });
 
     function safeStr(val) {
         return val ? String(val) : "";
@@ -953,43 +1011,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
             
-            if (data.records && data.records.length > 0) {
+            if (data.records) {
                 window.globalAgentRecords = data.records;
-                container.innerHTML = ''; 
                 
-                const records = data.records.sort((a, b) => {
-                    const dateA = new Date(a.fields.Date ? a.fields.Date : a.createdTime).getTime();
-                    const dateB = new Date(b.fields.Date ? b.fields.Date : b.createdTime).getTime();
-                    return dateB - dateA; 
-                }).slice(0, 5);
-                
-                records.forEach(record => {
-                    const fields = record.fields;
-                    const submittedUrl = fields.URL || "Requête en cours...";
-                    const status = fields.Status || "EN ATTENTE";
-                    const compteRendu = fields.Compte_Rendu || "";
-                    
-                    let statusColorBg = '#fef3c7'; let statusColorText = '#b45309';
-                    if (status.toLowerCase().includes('resolu') || status.toLowerCase().includes('termin')) { statusColorBg = '#dcfce7'; statusColorText = '#166534'; } 
-                    else if (status.toLowerCase().includes('rejet')) { statusColorBg = '#fee2e2'; statusColorText = '#991b1b'; }
-                    
-                    let shortUrl = submittedUrl;
-                    if(shortUrl.length > 35) shortUrl = shortUrl.substring(0, 35) + '...';
+                // Mettre à jour le compteur dans la vue Demande Manuelle
+                if(document.getElementById('ui-manuals-used')) document.getElementById('ui-manuals-used').innerText = data.records.length;
 
-                    let reportHtml = '';
-                    if (compteRendu) reportHtml = `<div class="d-agent-report"><b>Note de Sarah :</b> ${compteRendu}</div>`;
+                if (data.records.length > 0) {
+                    container.innerHTML = ''; 
+                    const records = data.records.sort((a, b) => {
+                        const dateA = new Date(a.fields.Date ? a.fields.Date : a.createdTime).getTime();
+                        const dateB = new Date(b.fields.Date ? b.fields.Date : b.createdTime).getTime();
+                        return dateB - dateA; 
+                    }).slice(0, 5);
+                    
+                    records.forEach(record => {
+                        const fields = record.fields;
+                        const submittedUrl = fields.URL || "Requête en cours...";
+                        const status = fields.Status || "EN ATTENTE";
+                        const compteRendu = fields.Compte_Rendu || "";
+                        
+                        let statusColorBg = '#fef3c7'; let statusColorText = '#b45309';
+                        if (status.toLowerCase().includes('resolu') || status.toLowerCase().includes('termin')) { statusColorBg = '#dcfce7'; statusColorText = '#166534'; } 
+                        else if (status.toLowerCase().includes('rejet')) { statusColorBg = '#fee2e2'; statusColorText = '#991b1b'; }
+                        
+                        let shortUrl = submittedUrl;
+                        if(shortUrl.length > 35) shortUrl = shortUrl.substring(0, 35) + '...';
 
-                    container.innerHTML += ` 
-                    <div style="padding:15px 0; border-bottom:1px solid #f1f3f5;"> 
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div><div style="font-weight:600; color:var(--text-dark);">${shortUrl}</div></div> 
-                            <div style="background:${statusColorBg}; color:${statusColorText}; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700;">${status.toUpperCase()}</div> 
-                        </div>
-                        ${reportHtml}
-                    </div>`; 
-                });
-            } else {
-                container.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted); font-size:13px;">Aucune demande manuelle trouvée.</div>';
+                        let reportHtml = '';
+                        if (compteRendu) reportHtml = `<div class="d-agent-report"><b>Note de Sarah :</b> ${compteRendu}</div>`;
+
+                        container.innerHTML += ` 
+                        <div style="padding:15px 0; border-bottom:1px solid #f1f3f5;"> 
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div><div style="font-weight:600; color:var(--text-dark);">${shortUrl}</div></div> 
+                                <div style="background:${statusColorBg}; color:${statusColorText}; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700;">${status.toUpperCase()}</div> 
+                            </div>
+                            ${reportHtml}
+                        </div>`; 
+                    });
+                } else {
+                    container.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted); font-size:13px;">Aucune demande manuelle trouvée.</div>';
+                }
             }
         } catch (error) {
             container.innerHTML = `<div style="padding:15px; text-align:center; color:var(--danger); font-size:13px;">${error.message}</div>`;
@@ -1159,6 +1222,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const message = document.getElementById('manual-message'); 
         const btn = document.getElementById('btn-submit-manual'); 
          
+        // --- VÉRIFICATION DE LA LIMITE DES DEMANDES MANUELLES ---
+        let currentRequestsCount = window.globalAgentRecords ? window.globalAgentRecords.length : 0;
+        if(currentRequestsCount >= MAX_REQUESTS) {
+            alert(`⚠️ Limite atteinte !\n\nVotre abonnement limite les demandes manuelles à ${MAX_REQUESTS}.\n\nVeuillez passer au plan supérieur dans l'onglet "Abonnement".`);
+            return;
+        }
+
         if(input.value.trim().length > 5) { 
             btn.innerText = "ENVOI EN COURS..."; btn.classList.add('d-btn-disabled'); btn.style.pointerEvents = 'none'; 
             window.logUserAction('manual_req', input.value.trim(), 'Équipe DeLeak');
@@ -1167,6 +1237,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => { 
                 alert("Demande bien reçue ! L'équipe DeLeak a été notifiée et Sarah a pris en charge le ticket."); 
+                
+                // Mise à jour visuelle du compteur
+                currentRequestsCount++;
+                if(document.getElementById('ui-manuals-used')) document.getElementById('ui-manuals-used').innerText = currentRequestsCount;
+
                 const container = document.getElementById('ticket-list');
                 const tempEntry = `
                 <div style="padding:15px 0; border-bottom:1px solid #f1f3f5; opacity: 0.7;"> 
