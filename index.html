@@ -1411,90 +1411,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }); 
 
     // =========================================================================
-    // HACK MEMBERSTACK ULTIME (ANTI-BLOCAGE WEBFLOW)
+    // HACK MEMBERSTACK ULTIME (POUR IFRAME GITHUB)
     // =========================================================================
     const upgradeBtns = document.querySelectorAll('.ms-upgrade-btn');
     upgradeBtns.forEach(btn => {
-        btn.addEventListener('click', async (e) => {
+        btn.addEventListener('click', (e) => {
             e.preventDefault();
             const priceId = btn.getAttribute('data-price-id');
             if(!priceId) return;
-            
+
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
             btn.style.opacity = '0.7';
 
-            try {
-                if(!window.$memberstackDom) {
-                    alert("Memberstack n'est pas chargé sur cette page.");
-                    btn.innerHTML = originalText;
-                    return;
-                }
-                const { data: member } = await window.$memberstackDom.getCurrentMember();
-                
-                if(!member) {
-                    alert("Erreur : Veuillez vous connecter pour modifier votre abonnement.");
-                    btn.innerHTML = originalText;
-                    return;
-                }
+            // Envoie l'ordre à la page Webflow parente
+            window.parent.postMessage('ms-update:' + priceId, '*');
 
-                // Vérifier si le membre a déjà un plan actif avec une carte enregistrée
-                const hasPlan = member.planConnections && member.planConnections.length > 0;
-                
-                // Création d'un lien invisible qui force l'ouverture de la popup Stripe
-                const triggerTag = document.createElement('a');
-                triggerTag.href = "#";
-                if(hasPlan) {
-                    triggerTag.setAttribute('data-ms-price:update', priceId);
-                } else {
-                    triggerTag.setAttribute('data-ms-price:add', priceId);
-                }
-                
-                document.body.appendChild(triggerTag);
-                triggerTag.click();
-                triggerTag.remove();
-                
-                setTimeout(() => {
-                    btn.innerHTML = 'Redirection...';
-                    btn.style.opacity = '1';
-                }, 1000);
-
-            } catch(error) {
-                console.error("Stripe Error:", error);
-                alert("Une erreur s'est produite. Avez-vous un moyen de paiement actif ?");
+            setTimeout(() => {
                 btn.innerHTML = originalText;
                 btn.style.opacity = '1';
-            }
+            }, 2000);
         });
     });
 
     const portalBtn = document.getElementById('ms-portal-btn');
     if(portalBtn) {
-        portalBtn.addEventListener('click', async (e) => {
+        portalBtn.addEventListener('click', (e) => {
             e.preventDefault();
             const originalText = portalBtn.innerHTML;
             portalBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ouverture...';
-            
-            try {
-                if(!window.$memberstackDom) return;
-                const { data: member } = await window.$memberstackDom.getCurrentMember();
-                
-                if(member && member.planConnections && member.planConnections.length > 0) {
-                    const triggerTag = document.createElement('a');
-                    triggerTag.href = "#";
-                    triggerTag.setAttribute('data-ms-action', 'customer-portal');
-                    document.body.appendChild(triggerTag);
-                    triggerTag.click();
-                    triggerTag.remove();
-                    setTimeout(() => portalBtn.innerHTML = originalText, 2000);
-                } else {
-                    alert("Vous n'avez aucun abonnement actif à gérer ou à résilier pour le moment.");
-                    portalBtn.innerHTML = originalText;
-                }
-            } catch(error) {
-                alert("Erreur de chargement du portail.");
-                portalBtn.innerHTML = originalText;
-            }
+
+            // Envoie l'ordre à la page Webflow parente
+            window.parent.postMessage('ms-portal', '*');
+
+            setTimeout(() => { portalBtn.innerHTML = originalText; }, 2000);
         });
     }
 
