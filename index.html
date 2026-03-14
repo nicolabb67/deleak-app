@@ -86,6 +86,7 @@
     width: 100%; 
     text-align: left; 
     font-family: 'Inter', sans-serif; 
+    position: relative;
   } 
   .d-nav-btn:hover { background: #f1f3f5; color: var(--text-dark); } 
   .d-nav-btn.active { background: var(--primary-soft); color: var(--primary); } 
@@ -112,9 +113,28 @@
     border-radius: 6px; 
     font-weight: 500; 
     font-family: 'Inter', sans-serif; 
+    position: relative;
   } 
   .d-sub-btn:hover { color: var(--primary); background: #f8f9fa; } 
   .d-sub-btn.active { color: var(--primary); font-weight: 700; background: var(--primary-soft); } 
+
+  /* Notification Badges */
+  .nav-badge {
+      position: absolute;
+      right: 15px;
+      background: var(--danger);
+      color: white;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 10px;
+      animation: popIn 0.3s ease;
+      display: none; /* Caché par défaut */
+  }
+  .sub-badge {
+      right: 10px;
+  }
+  @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
   @keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } } 
   @keyframes slideIn { from { opacity:0; transform:translateX(-20px); } to { opacity:1; transform:translateX(0); } } 
@@ -324,7 +344,7 @@
       display: block;
       animation: fadeUp 0.3s ease;
   }
-  .scan-accordion-item.active .scan-accordion-header .fa-chevron-down {
+  .scan-accordion-item.active .scan-accordion-header i.fa-chevron-down {
       transform: rotate(180deg);
   }
 
@@ -347,12 +367,19 @@
 
       <button class="d-nav-btn" id="btn-manual-toggle" style="margin-top: 5px;"> 
           <div style="display:flex; align-items:center; gap:12px;"><i class="fas fa-hand-paper"></i> Manuel</div> 
+          <span class="nav-badge" id="badge-manual-main">!</span>
           <i class="fas fa-chevron-down" style="margin-left:auto; font-size:12px; transition: transform 0.3s;" id="manual-arrow"></i> 
       </button> 
       <div id="manual-submenu" class="d-submenu-container"> 
           <button class="d-sub-btn" data-target="view-manual-request">Demande Manuelle</button> 
-          <button class="d-sub-btn" data-target="view-agent">Agent Personnel</button> 
-          <button class="d-sub-btn" data-target="view-review">Liens d'Évaluation</button> 
+          <button class="d-sub-btn" data-target="view-agent">
+              Agent Personnel 
+              <span class="nav-badge sub-badge" id="badge-agent">1</span>
+          </button> 
+          <button class="d-sub-btn" data-target="view-review">
+              Liens d'Évaluation 
+              <span class="nav-badge sub-badge" id="badge-review">1</span>
+          </button> 
       </div> 
        
       <button class="d-nav-btn" data-target="view-history"><i class="fas fa-list-alt"></i> Historique</button> 
@@ -790,6 +817,18 @@ document.addEventListener('DOMContentLoaded', () => {
     let CURRENT_PLAN = "Débutant";
     let globalUniqueProfiles = new Set();
 
+    // Variable pour gérer l'affichage de la pastille globale du menu Manuel
+    let totalNotifications = 0;
+
+    function updateMainMenuBadge() {
+        const mainBadge = document.getElementById('badge-manual-main');
+        if (totalNotifications > 0) {
+            mainBadge.style.display = 'inline-block';
+        } else {
+            mainBadge.style.display = 'none';
+        }
+    }
+
     function showNotification(message, type = 'success') {
         let toast = document.getElementById('custom-toast');
         if(!toast) {
@@ -1091,6 +1130,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if(document.getElementById('ui-manuals-used')) document.getElementById('ui-manuals-used').innerText = data.records.length;
 
+                // --- GESTION NOTIFICATION AGENT ---
+                // On considère qu'il y a une notification si Sarah a laissé un "Compte Rendu" et que le statut est "Résolu" ou "Rejeté"
+                const unreadAgentMessages = data.records.filter(r => r.fields.Compte_Rendu && (r.fields.Status === 'Résolu' || r.fields.Status === 'Rejeté')).length;
+                const badgeAgent = document.getElementById('badge-agent');
+                if (unreadAgentMessages > 0) {
+                    badgeAgent.innerText = unreadAgentMessages;
+                    badgeAgent.style.display = 'inline-block';
+                    totalNotifications += unreadAgentMessages;
+                    updateMainMenuBadge();
+                } else {
+                    badgeAgent.style.display = 'none';
+                }
+                
                 if (data.records.length > 0) {
                     container.innerHTML = ''; 
                     const records = data.records.sort((a, b) => {
@@ -1148,6 +1200,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             
             if (data.records && data.records.length > 0) {
+
+                // --- GESTION NOTIFICATION EVALUATION ---
+                const unreadEvalMessages = data.records.length;
+                const badgeReview = document.getElementById('badge-review');
+                if (unreadEvalMessages > 0) {
+                    badgeReview.innerText = unreadEvalMessages;
+                    badgeReview.style.display = 'inline-block';
+                    totalNotifications += unreadEvalMessages;
+                    updateMainMenuBadge();
+                } else {
+                    badgeReview.style.display = 'none';
+                }
+
                 container.innerHTML = ''; 
                 data.records.forEach(record => {
                     const fields = record.fields;
@@ -1231,12 +1296,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // === NOUVELLE FONCTION : GESTION DES ACCORDÉONS MULTI-PROFILS ===
     window.toggleAccordion = function(headerElement) {
         const item = headerElement.parentElement;
         const isActive = item.classList.contains('active');
         
-        // Ferme tous les autres accordéons (optionnel, commente ces 2 lignes si tu veux qu'on puisse tout ouvrir en même temps)
         document.querySelectorAll('.scan-accordion-item').forEach(el => el.classList.remove('active'));
         
         if (!isActive) {
@@ -1256,7 +1319,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!statusBox || !accordionContainer) return;
 
         statusBox.style.display = 'block'; loadingMsg.style.display = 'block'; errorMsg.style.display = 'none'; emptyMsg.style.display = 'none'; pendingBox.classList.add('d-hidden'); 
-        accordionContainer.innerHTML = ''; // On vide les anciens résultats
+        accordionContainer.innerHTML = ''; 
 
         try {
             const formula = encodeURIComponent(`{Client_Email}='${clientEmail}'`);
@@ -1270,14 +1333,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if(data.records && data.records.length > 0) {
                 
-                // 1. On trie par date (du plus récent au plus ancien)
                 const sortedRecords = data.records.sort((a, b) => {
                     const dateA = new Date(a.fields.Date ? a.fields.Date : a.createdTime).getTime();
                     const dateB = new Date(b.fields.Date ? b.fields.Date : b.createdTime).getTime();
                     return dateB - dateA;
                 });
 
-                // 2. On groupe par Pseudo pour ne garder que le DERNIER scan de CHAQUE pseudo
                 const latestScansByPseudo = {};
                 sortedRecords.forEach(record => {
                     const pseudo = record.fields.Pseudos ? record.fields.Pseudos.trim() : "Profil inconnu";
@@ -1286,10 +1347,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                // Si tout est en cours...
                 let hasAtLeastOneFinished = false;
 
-                // 3. On génère un accordéon pour chaque profil
                 let isFirst = true;
                 for (const pseudo in latestScansByPseudo) {
                     const latestRecord = latestScansByPseudo[pseudo].fields;
@@ -1323,7 +1382,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const lossStr = "$" + formatNumber(latestRecord.Pertes);
                         const viewsStr = formatNumber(latestRecord.Vues);
 
-                        const activeClass = isFirst ? 'active' : ''; // On ouvre le premier par défaut
+                        const activeClass = isFirst ? 'active' : ''; 
                         isFirst = false;
 
                         const accordionHtml = `
@@ -1589,9 +1648,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 const targetView = document.getElementById(targetId); 
                 if(targetView) { 
                     targetView.classList.remove('d-hidden'); targetView.classList.add('d-visible'); 
-                    if(targetId === 'view-agent') renderAgentTickets(); 
+
+                    // --- Disparition des pastilles de notification ---
+                    if(targetId === 'view-agent') {
+                        renderAgentTickets(); 
+                        const badgeAgent = document.getElementById('badge-agent');
+                        if(badgeAgent && badgeAgent.style.display !== 'none') {
+                            totalNotifications -= parseInt(badgeAgent.innerText);
+                            badgeAgent.style.display = 'none';
+                            updateMainMenuBadge();
+                        }
+                    }
+                    if(targetId === 'view-review') {
+                        loadEvaluationsFromAirtable(); 
+                        const badgeReview = document.getElementById('badge-review');
+                        if(badgeReview && badgeReview.style.display !== 'none') {
+                            totalNotifications -= parseInt(badgeReview.innerText);
+                            badgeReview.style.display = 'none';
+                            updateMainMenuBadge();
+                        }
+                    }
+
                     if(targetId === 'view-dashboard') loadChartDataFromAirtable();
-                    if(targetId === 'view-review') loadEvaluationsFromAirtable(); 
                     if(targetId === 'view-tracking') loadLatestScanInfo(); 
                 } 
             } 
