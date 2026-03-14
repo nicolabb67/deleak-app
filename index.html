@@ -244,6 +244,37 @@
       margin-right: 10px;
       font-size: 16px;
   }
+
+  /* --- CUSTOM TOAST NOTIFICATION (REMPLACE LES ALERTS) --- */
+  #custom-toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #ffffff;
+      color: var(--text-dark);
+      padding: 15px 25px;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 99999;
+      transform: translateY(150px) scale(0.9);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: none;
+      border-left: 5px solid var(--primary);
+      max-width: 350px;
+      line-height: 1.5;
+  }
+  #custom-toast.show {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+  }
+  #custom-toast.error { border-left-color: var(--danger); }
+  #custom-toast.success { border-left-color: var(--success); }
+  #custom-toast.warning { border-left-color: var(--warning); }
+
 </style> 
 </head> 
 <body> 
@@ -736,6 +767,26 @@ document.addEventListener('DOMContentLoaded', () => {
     let CURRENT_PLAN = "Débutant";
     let globalUniqueProfiles = new Set();
 
+    // =========================================================================
+    // 2. FONCTION DE NOTIFICATION "TOAST" (REMPLACE LES ALERTS)
+    // =========================================================================
+    function showNotification(message, type = 'success') {
+        let toast = document.getElementById('custom-toast');
+        if(!toast) {
+            toast = document.createElement('div');
+            toast.id = 'custom-toast';
+            document.body.appendChild(toast);
+        }
+        toast.className = type;
+        toast.innerHTML = message;
+        toast.classList.add('show');
+        
+        if(toast.hideTimeout) clearTimeout(toast.hideTimeout);
+        toast.hideTimeout = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 4000);
+    }
+
     // Fonction pour appliquer les limites en fonction du plan
     function setPlanLimits(planString) {
         if (!planString) planString = "";
@@ -757,24 +808,20 @@ document.addEventListener('DOMContentLoaded', () => {
             CURRENT_PLAN = "DÉBUTANT";
         }
 
-        // Mise à jour de l'affichage dans le Scan
         if(document.getElementById('ui-profiles-max')) document.getElementById('ui-profiles-max').innerText = MAX_PROFILES;
         if(document.getElementById('ui-plan-name')) document.getElementById('ui-plan-name').innerText = "PLAN " + CURRENT_PLAN;
         
-        // Mise à jour de l'affichage dans la Demande Manuelle
         if(document.getElementById('ui-manual-plan')) document.getElementById('ui-manual-plan').innerText = "PLAN " + CURRENT_PLAN;
         if(document.getElementById('ui-manuals-max')) document.getElementById('ui-manuals-max').innerText = MAX_REQUESTS === Infinity ? "∞" : MAX_REQUESTS;
     }
 
-    // On regarde si on a déjà enregistré le plan, sinon par défaut on met Débutant
     const urlPlan = new URLSearchParams(window.location.search).get('plan') || localStorage.getItem('deleak_plan') || '';
     setPlanLimits(urlPlan);
 
-    // Écoute de Webflow : quand Webflow charge, il va nous dire quel est le vrai plan
     window.addEventListener('message', function(event) {
         if (typeof event.data === 'string' && event.data.startsWith('ms-plan-active:')) {
             let planId = event.data.split(':')[1];
-            localStorage.setItem('deleak_plan', planId); // On sauvegarde pour les prochains rafraîchissements
+            localStorage.setItem('deleak_plan', planId);
             setPlanLimits(planId);
         }
     });
@@ -1014,7 +1061,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.records) {
                 window.globalAgentRecords = data.records;
                 
-                // Mettre à jour le compteur dans la vue Demande Manuelle
                 if(document.getElementById('ui-manuals-used')) document.getElementById('ui-manuals-used').innerText = data.records.length;
 
                 if (data.records.length > 0) {
@@ -1130,13 +1176,13 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify({ fields: { "Status": newStatus } })
         }).then(response => {
             if(response.ok) {
-                alert(`Décision enregistrée ! Ce compte sera ${decision.includes('GARDER') ? 'sauvegardé' : 'supprimé'}.`);
+                showNotification("✅ Décision enregistrée !", "success");
                 if(itemDiv) itemDiv.remove();
                 const container = document.getElementById('review-container');
                 if(container && container.children.length === 0) container.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted); font-size:13px;">Super ! Vous n\'avez plus aucun compte en attente d\'évaluation.</div>';
             } else { throw new Error("Impossible de mettre à jour Airtable."); }
         }).catch(err => {
-            alert("Note : La base de données n'a pas pu être contactée, mais l'action a été enregistrée dans l'historique.");
+            showNotification("⚠️ Action enregistrée localement.", "warning");
             if(itemDiv) itemDiv.style.opacity = '1';
         });
     }
@@ -1222,10 +1268,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const message = document.getElementById('manual-message'); 
         const btn = document.getElementById('btn-submit-manual'); 
          
-        // --- VÉRIFICATION DE LA LIMITE DES DEMANDES MANUELLES ---
         let currentRequestsCount = window.globalAgentRecords ? window.globalAgentRecords.length : 0;
         if(currentRequestsCount >= MAX_REQUESTS) {
-            alert(`⚠️ Limite atteinte !\n\nVotre abonnement limite les demandes manuelles à ${MAX_REQUESTS}.\n\nVeuillez passer au plan supérieur dans l'onglet "Abonnement".`);
+            showNotification(`⚠️ Limite atteinte !<br>Votre abonnement limite à ${MAX_REQUESTS} demandes manuelles.<br>Passez au plan supérieur.`, "error");
             return;
         }
 
@@ -1236,9 +1281,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const emailData = { url_target: `DEMANDE MANUELLE | URL : ${input.value.trim()} | MESSAGE : ${message && message.value.trim() !== '' ? message.value.trim() : 'Aucun message'} | CLIENT : ${clientEmail}`, to_email: "nicolopro170817@gmail.com" }; 
 
             emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => { 
-                alert("Demande bien reçue ! L'équipe DeLeak a été notifiée et Sarah a pris en charge le ticket."); 
+                showNotification("✅ Demande bien reçue !<br>Sarah a pris en charge le ticket.", "success");
                 
-                // Mise à jour visuelle du compteur
                 currentRequestsCount++;
                 if(document.getElementById('ui-manuals-used')) document.getElementById('ui-manuals-used').innerText = currentRequestsCount;
 
@@ -1254,10 +1298,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 input.value = ""; if (message) message.value = "";  
                 btn.innerText = "ENVOYER À L'ÉQUIPE"; btn.classList.remove('d-btn-disabled'); btn.style.pointerEvents = 'auto';
             }).catch((err) => { 
-                alert("Erreur lors de l'envoi de la demande, mais l'action a bien été ajoutée au journal."); 
+                showNotification("⚠️ Action enregistrée localement (Erreur réseau).", "warning");
                 btn.innerText = "ENVOYER À L'ÉQUIPE"; btn.classList.remove('d-btn-disabled'); btn.style.pointerEvents = 'auto'; 
             }); 
-        } else { alert("Veuillez entrer une URL valide."); } 
+        } else { showNotification("❌ Veuillez entrer une URL valide.", "error"); } 
     }; 
 
     const fakeSites = ['fapeza.com', 'sorrymother.video', 'fappeningbook.com', 'thotsbay.ac', 'thefappening.plus', 'OnlyLeaks.com', 'ThotHub.org', 'Mega.nz', 'Telegram (Canal Privé)', 'SimpCity.su']; 
@@ -1440,18 +1484,41 @@ document.addEventListener('DOMContentLoaded', () => {
         if(submitSocialsBtn) {
             const ig = document.getElementById('social-ig').value.trim(); const tk = document.getElementById('social-tk').value.trim();
             const sc = document.getElementById('social-sc').value.trim(); const yt = document.getElementById('social-yt').value.trim();
-            if(!ig && !tk && !sc && !yt) { alert("Veuillez renseigner au moins un réseau social."); return; }
+            
+            const requestedSocials = [];
+            if(ig) requestedSocials.push(ig);
+            if(tk) requestedSocials.push(tk);
+            if(sc) requestedSocials.push(sc);
+            if(yt) requestedSocials.push(yt);
+
+            if(requestedSocials.length === 0) { 
+                showNotification("⚠️ Veuillez renseigner au moins un réseau.", "warning"); 
+                return; 
+            }
+
+            let projectedSet = new Set(globalUniqueProfiles); 
+            requestedSocials.forEach(p => projectedSet.add(p));
+            if(projectedSet.size > MAX_PROFILES) {
+                showNotification(`⚠️ Limite de profils atteinte !<br>Vous avez atteint le maximum de ${MAX_PROFILES} profil(s).<br>Passez au plan supérieur.`, "error"); 
+                return;
+            }
 
             submitSocialsBtn.innerText = "ENREGISTREMENT..."; submitSocialsBtn.classList.add('d-btn-disabled'); submitSocialsBtn.style.pointerEvents = 'none';
 
             const emailData = { url_target: `MISE À JOUR RÉSEAUX SOCIAUX | CLIENT : ${clientEmail}\n\nInstagram: ${ig || 'Non renseigné'}\nTikTok: ${tk || 'Non renseigné'}\nSnapchat: ${sc || 'Non renseigné'}\nYouTube: ${yt || 'Non renseigné'}`, to_email: "nicolopro170817@gmail.com" };
 
             emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => {
-                alert("Réseaux sociaux enregistrés avec succès ! Notre équipe a été notifiée.");
+                showNotification("✅ Réseaux enregistrés avec succès !", "success");
                 submitSocialsBtn.innerText = "RÉSEAUX ENREGISTRÉS ✓";
+                
+                requestedSocials.forEach(p => globalUniqueProfiles.add(p));
+                if(document.getElementById('ui-profiles-used')) {
+                    document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
+                }
+
                 setTimeout(() => { submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX"; submitSocialsBtn.classList.remove('d-btn-disabled'); submitSocialsBtn.style.pointerEvents = 'auto'; }, 3000);
             }).catch((err) => {
-                alert("Erreur lors de l'enregistrement. Vérifiez votre connexion.");
+                showNotification("❌ Erreur lors de l'enregistrement.", "error");
                 submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX"; submitSocialsBtn.classList.remove('d-btn-disabled'); submitSocialsBtn.style.pointerEvents = 'auto';
             });
         }
@@ -1467,7 +1534,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let projectedSet = new Set(globalUniqueProfiles); requestedProfiles.forEach(p => projectedSet.add(p));
             if(projectedSet.size > MAX_PROFILES) {
                 input.classList.add('error');
-                alert(`⚠️ Limite atteinte !\n\nVotre abonnement limite la surveillance à ${MAX_PROFILES} profil(s) unique(s).\n\nVous avez actuellement ${globalUniqueProfiles.size} profil(s) actif(s) et vous essayez d'en lancer ${projectedSet.size} au total.\n\nVeuillez passer au plan supérieur dans l'onglet "Abonnement".`);
+                showNotification(`⚠️ Limite de profils atteinte !<br>Vous surveillez ` + globalUniqueProfiles.size + ` profil(s) sur ` + MAX_PROFILES + `.<br>Passez au plan supérieur.`, "error");
                 setTimeout(() => { input.classList.remove('error'); }, 2000); return;
             }
 
@@ -1479,7 +1546,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 input.value = ""; resultBox.classList.remove('d-hidden'); resultBox.classList.add('d-visible'); 
                 requestedProfiles.forEach(p => globalUniqueProfiles.add(p)); document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
             }).catch((err) => { 
-                alert("Erreur lors de la création de la demande. Vérifiez votre connexion."); 
+                showNotification("❌ Erreur de connexion.", "error");
                 startScanBtn.innerText = "LANCER L'ANALYSE"; startScanBtn.classList.remove('d-btn-disabled'); startScanBtn.style.pointerEvents = 'auto'; 
             }); 
         }
