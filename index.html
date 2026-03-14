@@ -245,7 +245,7 @@
       font-size: 16px;
   }
 
-  /* --- CUSTOM TOAST NOTIFICATION (REMPLACE LES ALERTS) --- */
+  /* --- CUSTOM TOAST NOTIFICATION --- */
   #custom-toast {
       position: fixed;
       bottom: 30px;
@@ -277,6 +277,56 @@
   #custom-toast.error { border-left-color: var(--danger); }
   #custom-toast.success { border-left-color: var(--success); }
   #custom-toast.warning { border-left-color: var(--warning); }
+
+  /* --- STYLE ACCORDÉON POUR SUIVI SCAN MULTI-PROFILS --- */
+  .scan-accordion-item {
+      margin-bottom: 20px;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      background: #fff;
+      overflow: hidden;
+  }
+  .scan-accordion-header {
+      padding: 20px 24px;
+      background: #f8f9fa;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s;
+  }
+  .scan-accordion-header:hover {
+      background: #e9ecef;
+  }
+  .scan-accordion-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+  }
+  .scan-accordion-badge {
+      background: var(--danger);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+  }
+  .scan-accordion-content {
+      padding: 24px;
+      display: none; /* Caché par défaut */
+      border-top: 1px solid var(--border-light);
+  }
+  .scan-accordion-item.active .scan-accordion-content {
+      display: block;
+      animation: fadeUp 0.3s ease;
+  }
+  .scan-accordion-item.active .scan-accordion-header .fa-chevron-down {
+      transform: rotate(180deg);
+  }
 
 </style> 
 </head> 
@@ -498,9 +548,9 @@
 
     <div id="view-tracking" class="d-view d-hidden"> 
       <h1>Suivi de Scan</h1> 
-      <h2>Résultats détaillés de votre dernière analyse.</h2> 
+      <h2>Résultats détaillés par profil surveillé.</h2> 
        
-      <div class="d-scan-box" id="track-status-box" style="padding:30px; margin-bottom:30px;"> 
+      <div class="d-scan-box" id="track-status-box" style="padding:30px; margin-bottom:30px; display: none;"> 
         <div id="track-loading" style="color:var(--primary); font-size:14px; font-weight:600; display:none;"><i class="fas fa-spinner fa-spin"></i> Récupération de vos résultats...</div> 
         <div id="track-error" style="color:var(--danger); font-size:14px; font-weight:600; display:none;">Erreur de connexion. Vérifiez Airtable.</div> 
         <div id="track-empty" style="color:var(--text-muted); font-size:14px; font-weight:500; display:none;">Aucune analyse récente trouvée. Lancez un nouveau scan !</div>
@@ -511,36 +561,9 @@
         </div> 
       </div> 
        
-      <div id="track-results" class="d-hidden"> 
-        <h3 style="border-bottom:2px solid var(--border-light); padding-bottom:10px; color:var(--text-dark);">Rapport d'analyse : <span id="res-ticket" style="color:var(--primary)"></span></h3> 
-         
-        <div class="d-grid-3" style="margin-bottom:25px; margin-top:20px;"> 
-             <div class="d-card" style="border-top: 4px solid var(--danger); text-align:center;"> 
-                 <div class="d-label">Total Infractions Détectées</div> 
-                 <div id="stat-infringements" class="d-big-num" style="color:var(--danger); font-size:42px;">0</div> 
-             </div> 
-             <div class="d-card" style="border-top: 4px solid #f59e0b; text-align:center;"> 
-                 <div class="d-label">Perte Financière Estimée</div> 
-                 <div id="stat-loss" class="d-big-num" style="color:#f59e0b; font-size:42px;">$0</div> 
-             </div> 
-             <div class="d-card" style="border-top: 4px solid var(--primary); text-align:center;"> 
-                 <div class="d-label">Vues Pirates (Est.)</div> 
-                 <div id="stat-views" class="d-big-num" style="color:var(--primary); font-size:42px;">0</div> 
-             </div> 
-        </div> 
+      <div id="track-results-accordion-container">
+          </div>
 
-        <div class="d-grid-2"> 
-            <div class="d-card"> 
-                <h3 style="margin-top:0; font-size:18px; border-bottom:1px solid var(--border-light); padding-bottom:15px; color:var(--text-dark);">Répartition par Domaines</h3> 
-                <div id="stat-breakdown" style="margin-top:10px;"></div> 
-            </div> 
-            <div class="d-card" style="background:#fffafc; border: 1px solid #fce7f3;"> 
-                <h3 style="margin-top:0; font-size:18px; color:#be123c;"><i class="fas fa-link"></i> Preuves d'infractions</h3> 
-                <p style="font-size:13px; color:var(--text-muted);">Voici les liens sources détectés par nos scanners :</p> 
-                <div id="real-links-container" style="margin-top:15px; font-size:13px; word-break:break-all; max-height:200px; overflow-y:auto;"></div> 
-            </div> 
-        </div> 
-      </div> 
     </div> 
 
     <div id="view-history" class="d-view d-hidden"> 
@@ -762,17 +785,11 @@
 <script> 
 document.addEventListener('DOMContentLoaded', () => { 
 
-    // =========================================================================
-    // 1. GESTION DYNAMIQUE DES LIMITES D'ABONNEMENT
-    // =========================================================================
     let MAX_PROFILES = 1;
     let MAX_REQUESTS = 20;
     let CURRENT_PLAN = "Débutant";
     let globalUniqueProfiles = new Set();
 
-    // =========================================================================
-    // 2. FONCTION DE NOTIFICATION "TOAST" (REMPLACE LES ALERTS)
-    // =========================================================================
     function showNotification(message, type = 'success') {
         let toast = document.getElementById('custom-toast');
         if(!toast) {
@@ -801,7 +818,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 4000);
     }
 
-    // Fonction pour appliquer les limites en fonction du plan
     function setPlanLimits(planString) {
         if (!planString) planString = "";
         const planLower = planString.toLowerCase();
@@ -840,9 +856,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function safeStr(val) {
-        return val ? String(val) : "";
-    }
+    function safeStr(val) { return val ? String(val) : ""; }
 
     window.logUserAction = function(type, url, siteContext) {
         let userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
@@ -1178,7 +1192,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.sendEvaluationDecision = function(recordId, url, decision) {
         window.logUserAction('eval_decision', url, decision.includes('GARDER') ? 'GARDER' : 'SUPPRIMER');
         
-        // --- ANIMATION VISUELLE AU CLIC ---
         const itemDiv = document.getElementById(`eval-${recordId}`);
         if(itemDiv) {
             const btns = itemDiv.querySelectorAll('button');
@@ -1218,17 +1231,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // === NOUVELLE FONCTION : GESTION DES ACCORDÉONS MULTI-PROFILS ===
+    window.toggleAccordion = function(headerElement) {
+        const item = headerElement.parentElement;
+        const isActive = item.classList.contains('active');
+        
+        // Ferme tous les autres accordéons (optionnel, commente ces 2 lignes si tu veux qu'on puisse tout ouvrir en même temps)
+        document.querySelectorAll('.scan-accordion-item').forEach(el => el.classList.remove('active'));
+        
+        if (!isActive) {
+            item.classList.add('active');
+        }
+    }
+
     async function loadLatestScanInfo() {
         const statusBox = document.getElementById('track-status-box');
         const loadingMsg = document.getElementById('track-loading');
         const errorMsg = document.getElementById('track-error');
         const emptyMsg = document.getElementById('track-empty');
         const pendingBox = document.getElementById('track-pending');
-        const resultsBox = document.getElementById('track-results');
+        
+        const accordionContainer = document.getElementById('track-results-accordion-container');
 
-        if(!statusBox) return;
+        if(!statusBox || !accordionContainer) return;
 
-        statusBox.style.display = 'block'; loadingMsg.style.display = 'block'; errorMsg.style.display = 'none'; emptyMsg.style.display = 'none'; pendingBox.classList.add('d-hidden'); resultsBox.classList.add('d-hidden');
+        statusBox.style.display = 'block'; loadingMsg.style.display = 'block'; errorMsg.style.display = 'none'; emptyMsg.style.display = 'none'; pendingBox.classList.add('d-hidden'); 
+        accordionContainer.innerHTML = ''; // On vide les anciens résultats
 
         try {
             const formula = encodeURIComponent(`{Client_Email}='${clientEmail}'`);
@@ -1241,50 +1269,113 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingMsg.style.display = 'none';
 
             if(data.records && data.records.length > 0) {
+                
+                // 1. On trie par date (du plus récent au plus ancien)
                 const sortedRecords = data.records.sort((a, b) => {
                     const dateA = new Date(a.fields.Date ? a.fields.Date : a.createdTime).getTime();
                     const dateB = new Date(b.fields.Date ? b.fields.Date : b.createdTime).getTime();
                     return dateB - dateA;
                 });
 
-                const latestRecord = sortedRecords[0].fields;
+                // 2. On groupe par Pseudo pour ne garder que le DERNIER scan de CHAQUE pseudo
+                const latestScansByPseudo = {};
+                sortedRecords.forEach(record => {
+                    const pseudo = record.fields.Pseudos ? record.fields.Pseudos.trim() : "Profil inconnu";
+                    if (!latestScansByPseudo[pseudo]) {
+                        latestScansByPseudo[pseudo] = record;
+                    }
+                });
 
-                if(latestRecord.Status && String(latestRecord.Status).toLowerCase().includes("termin")) {
-                    statusBox.style.display = 'none'; 
-                    document.getElementById('res-ticket').innerText = latestRecord.Pseudos || "Analyse récente";
-                    document.getElementById('stat-infringements').innerText = formatNumber(latestRecord.Leaks);
-                    document.getElementById('stat-loss').innerText = "$" + formatNumber(latestRecord.Pertes);
-                    document.getElementById('stat-views').innerText = formatNumber(latestRecord.Vues);
+                // Si tout est en cours...
+                let hasAtLeastOneFinished = false;
 
-                    let domHtml = "";
-                    if(latestRecord.Domaines) {
-                        const domainesArray = latestRecord.Domaines.split(',');
-                        domainesArray.forEach(item => {
-                            const parts = item.split(':');
-                            const site = parts[0] ? parts[0].trim() : "Site";
-                            const count = parts[1] ? parts[1].trim() : "";
-                            domHtml += `<div class="d-site-item"><div class="d-site-domain"><i class="fas fa-globe" style="color:var(--text-muted); margin-right:8px;"></i> ${site}</div><div class="d-site-count">${count}</div></div>`;
-                        });
-                    } else { domHtml = "<span style='color:#6c757d; font-size:13px;'>Aucun détail fourni.</span>"; }
-                    document.getElementById('stat-breakdown').innerHTML = domHtml;
+                // 3. On génère un accordéon pour chaque profil
+                let isFirst = true;
+                for (const pseudo in latestScansByPseudo) {
+                    const latestRecord = latestScansByPseudo[pseudo].fields;
+                    const recordId = latestScansByPseudo[pseudo].id;
 
-                    let linksHtml = "<ul style='padding-left:15px; margin:0;'>";
-                    if(latestRecord.Liens) {
-                        const linksArray = latestRecord.Liens.split(',');
-                        linksArray.forEach(l => {
-                            const cleanL = l.trim();
-                            if(cleanL.length > 5) linksHtml += `<li><a href="${cleanL}" target="_blank" style="color:#be123c; text-decoration:none;">${cleanL}</a></li>`;
-                        });
-                    } else { linksHtml += "<li><span style='color:#6c757d; text-decoration:none;'>Aucun lien fourni.</span></li>"; }
-                    linksHtml += "</ul>";
-                    document.getElementById('real-links-container').innerHTML = linksHtml;
+                    if(latestRecord.Status && String(latestRecord.Status).toLowerCase().includes("termin")) {
+                        hasAtLeastOneFinished = true;
 
-                    resultsBox.classList.remove('d-hidden'); resultsBox.classList.add('d-visible');
+                        let domHtml = "";
+                        if(latestRecord.Domaines) {
+                            const domainesArray = latestRecord.Domaines.split(',');
+                            domainesArray.forEach(item => {
+                                const parts = item.split(':');
+                                const site = parts[0] ? parts[0].trim() : "Site";
+                                const count = parts[1] ? parts[1].trim() : "";
+                                domHtml += `<div class="d-site-item"><div class="d-site-domain"><i class="fas fa-globe" style="color:var(--text-muted); margin-right:8px;"></i> ${site}</div><div class="d-site-count">${count}</div></div>`;
+                            });
+                        } else { domHtml = "<span style='color:#6c757d; font-size:13px;'>Aucun détail fourni.</span>"; }
 
-                    window.addScanToHistory(sortedRecords[0].id, latestRecord.Pseudos || "Recherche", latestRecord.Leaks || 0);
+                        let linksHtml = "<ul style='padding-left:15px; margin:0;'>";
+                        if(latestRecord.Liens) {
+                            const linksArray = latestRecord.Liens.split(',');
+                            linksArray.forEach(l => {
+                                const cleanL = l.trim();
+                                if(cleanL.length > 5) linksHtml += `<li><a href="${cleanL}" target="_blank" style="color:#be123c; text-decoration:none;">${cleanL}</a></li>`;
+                            });
+                        } else { linksHtml += "<li><span style='color:#6c757d; text-decoration:none;'>Aucun lien fourni.</span></li>"; }
+                        linksHtml += "</ul>";
+
+                        const leaksCount = parseInt(latestRecord.Leaks) || 0;
+                        const lossStr = "$" + formatNumber(latestRecord.Pertes);
+                        const viewsStr = formatNumber(latestRecord.Vues);
+
+                        const activeClass = isFirst ? 'active' : ''; // On ouvre le premier par défaut
+                        isFirst = false;
+
+                        const accordionHtml = `
+                        <div class="scan-accordion-item ${activeClass}">
+                            <div class="scan-accordion-header" onclick="toggleAccordion(this)">
+                                <h3 class="scan-accordion-title">
+                                    <i class="fas fa-user-circle" style="color:var(--primary);"></i> ${pseudo}
+                                    <span class="scan-accordion-badge">${leaksCount} fuites</span>
+                                </h3>
+                                <i class="fas fa-chevron-down" style="color:var(--text-muted); transition: 0.3s;"></i>
+                            </div>
+                            
+                            <div class="scan-accordion-content">
+                                <div class="d-grid-3" style="margin-bottom:25px;"> 
+                                     <div class="d-card" style="border-top: 4px solid var(--danger); text-align:center; padding: 15px;"> 
+                                         <div class="d-label">Total Infractions</div> 
+                                         <div class="d-big-num" style="color:var(--danger); font-size:32px;">${formatNumber(leaksCount)}</div> 
+                                     </div> 
+                                     <div class="d-card" style="border-top: 4px solid #f59e0b; text-align:center; padding: 15px;"> 
+                                         <div class="d-label">Perte Financière Estimée</div> 
+                                         <div class="d-big-num" style="color:#f59e0b; font-size:32px;">${lossStr}</div> 
+                                     </div> 
+                                     <div class="d-card" style="border-top: 4px solid var(--primary); text-align:center; padding: 15px;"> 
+                                         <div class="d-label">Vues Pirates (Est.)</div> 
+                                         <div class="d-big-num" style="color:var(--primary); font-size:32px;">${viewsStr}</div> 
+                                     </div> 
+                                </div> 
+
+                                <div class="d-grid-2"> 
+                                    <div class="d-card" style="padding: 20px;"> 
+                                        <h3 style="margin-top:0; font-size:16px; border-bottom:1px solid var(--border-light); padding-bottom:10px; color:var(--text-dark);">Répartition par Domaines</h3> 
+                                        <div style="margin-top:10px;">${domHtml}</div> 
+                                    </div> 
+                                    <div class="d-card" style="background:#fffafc; border: 1px solid #fce7f3; padding: 20px;"> 
+                                        <h3 style="margin-top:0; font-size:16px; color:#be123c;"><i class="fas fa-link"></i> Preuves d'infractions</h3> 
+                                        <div style="margin-top:15px; font-size:13px; word-break:break-all; max-height:200px; overflow-y:auto;">${linksHtml}</div> 
+                                    </div> 
+                                </div>
+                            </div>
+                        </div>`;
+
+                        accordionContainer.innerHTML += accordionHtml;
+                        window.addScanToHistory(recordId, pseudo, leaksCount);
+                    }
+                }
+
+                if(hasAtLeastOneFinished) {
+                    statusBox.style.display = 'none';
                 } else {
                     pendingBox.classList.remove('d-hidden'); pendingBox.classList.add('d-visible');
                 }
+
             } else { emptyMsg.style.display = 'block'; }
         } catch(err) {
             loadingMsg.style.display = 'none'; errorMsg.style.display = 'block';
