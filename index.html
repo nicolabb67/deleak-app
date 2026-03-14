@@ -156,9 +156,9 @@
 
   /* Boutons Action Review */ 
   .d-btn-approve { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; } 
-  .d-btn-approve:hover { background: #059669; }
+  .d-btn-approve:hover:not(:disabled) { background: #059669; }
   .d-btn-reject { background: var(--danger); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; } 
-  .d-btn-reject:hover { background: #dc2626; color:white; }
+  .d-btn-reject:hover:not(:disabled) { background: #dc2626; color:white; }
 
   /* --- ACTIONS & LISTS --- */ 
   .d-actions-container { margin-top: 20px; display: flex; flex-direction: column; gap: 0; max-height: 400px; overflow-y: auto; } 
@@ -171,7 +171,7 @@
   .d-action-time { font-size: 12px; font-weight: 500; color: var(--text-muted); } 
 
   /* --- REVIEW CARD --- */ 
-  .d-review-item { display: flex; align-items: center; justify-content: space-between; padding: 20px; background: #fff; border: 1px solid var(--border-light); border-radius: 12px; margin-bottom: 15px; transition: 0.3s; } 
+  .d-review-item { display: flex; align-items: center; justify-content: space-between; padding: 20px; background: #fff; border: 1px solid var(--border-light); border-radius: 12px; margin-bottom: 15px; transition: all 0.4s ease; } 
   .d-review-item:hover { border-color: var(--primary-soft); box-shadow: var(--shadow-sm); }
   .d-review-img { width: 60px; height: 60px; background: #eee; border-radius: 8px; object-fit: cover; margin-right: 15px; } 
 
@@ -258,7 +258,7 @@
       font-family: 'Inter', sans-serif;
       font-size: 14px;
       font-weight: 500;
-      z-index: 99999;
+      z-index: 999999;
       transform: translateY(150px) scale(0.9);
       opacity: 0;
       transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -266,6 +266,9 @@
       border-left: 5px solid var(--primary);
       max-width: 350px;
       line-height: 1.5;
+      display: flex;
+      align-items: center;
+      gap: 12px;
   }
   #custom-toast.show {
       transform: translateY(0) scale(1);
@@ -777,8 +780,19 @@ document.addEventListener('DOMContentLoaded', () => {
             toast.id = 'custom-toast';
             document.body.appendChild(toast);
         }
+        
+        let icon = 'fa-info-circle';
+        if(type === 'success') icon = 'fa-check-circle';
+        if(type === 'error') icon = 'fa-exclamation-circle';
+        if(type === 'warning') icon = 'fa-exclamation-triangle';
+        
+        let color = 'var(--primary)';
+        if(type === 'success') color = 'var(--success)';
+        if(type === 'error') color = 'var(--danger)';
+        if(type === 'warning') color = 'var(--warning)';
+
         toast.className = type;
-        toast.innerHTML = message;
+        toast.innerHTML = `<i class="fas ${icon}" style="color:${color}; font-size:18px;"></i> <div>${message}</div>`;
         toast.classList.add('show');
         
         if(toast.hideTimeout) clearTimeout(toast.hideTimeout);
@@ -1163,8 +1177,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.sendEvaluationDecision = function(recordId, url, decision) {
         window.logUserAction('eval_decision', url, decision.includes('GARDER') ? 'GARDER' : 'SUPPRIMER');
+        
+        // --- ANIMATION VISUELLE AU CLIC ---
         const itemDiv = document.getElementById(`eval-${recordId}`);
-        if(itemDiv) itemDiv.style.opacity = '0.5';
+        if(itemDiv) {
+            const btns = itemDiv.querySelectorAll('button');
+            btns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; b.style.cursor = 'not-allowed'; });
+            const clickedBtn = decision.includes('GARDER') ? btns[0] : btns[1];
+            if(clickedBtn) clickedBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
+            itemDiv.style.opacity = '0.7';
+            itemDiv.style.filter = 'grayscale(100%)';
+        }
 
         const emailData = { url_target: `ÉVALUATION | DÉCISION : ${decision} | URL : ${url} | CLIENT: ${clientEmail}`, to_email: "nicolopro170817@gmail.com" };
         emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData); 
@@ -1176,14 +1199,22 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify({ fields: { "Status": newStatus } })
         }).then(response => {
             if(response.ok) {
-                showNotification("✅ Décision enregistrée !", "success");
-                if(itemDiv) itemDiv.remove();
-                const container = document.getElementById('review-container');
-                if(container && container.children.length === 0) container.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted); font-size:13px;">Super ! Vous n\'avez plus aucun compte en attente d\'évaluation.</div>';
+                showNotification("Choix enregistré avec succès.", "success");
+                if(itemDiv) {
+                    itemDiv.innerHTML = `<div style="width:100%; text-align:center; color:var(--success); font-weight:600; padding: 20px;"><i class="fas fa-check-circle"></i> Compte traité (${decision.includes('GARDER') ? 'Garder' : 'Supprimer'})</div>`;
+                    setTimeout(() => { 
+                        itemDiv.remove(); 
+                        const container = document.getElementById('review-container');
+                        if(container && container.children.length === 0) container.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted); font-size:13px;">Super ! Vous n\'avez plus aucun compte en attente d\'évaluation.</div>';
+                    }, 2000);
+                }
             } else { throw new Error("Impossible de mettre à jour Airtable."); }
         }).catch(err => {
-            showNotification("⚠️ Action enregistrée localement.", "warning");
-            if(itemDiv) itemDiv.style.opacity = '1';
+            showNotification("Action enregistrée localement.", "warning");
+            if(itemDiv) {
+                itemDiv.innerHTML = `<div style="width:100%; text-align:center; color:var(--warning); font-weight:600; padding: 20px;"><i class="fas fa-check-circle"></i> Compte traité (Hors-ligne)</div>`;
+                setTimeout(() => { itemDiv.remove(); }, 2000);
+            }
         });
     }
 
@@ -1270,7 +1301,7 @@ document.addEventListener('DOMContentLoaded', () => {
          
         let currentRequestsCount = window.globalAgentRecords ? window.globalAgentRecords.length : 0;
         if(currentRequestsCount >= MAX_REQUESTS) {
-            showNotification(`⚠️ Limite atteinte !<br>Votre abonnement limite à ${MAX_REQUESTS} demandes manuelles.<br>Passez au plan supérieur.`, "error");
+            showNotification(`Limite atteinte ! Votre abonnement limite à ${MAX_REQUESTS} demandes manuelles. Passez au plan supérieur.`, "error");
             return;
         }
 
@@ -1281,7 +1312,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const emailData = { url_target: `DEMANDE MANUELLE | URL : ${input.value.trim()} | MESSAGE : ${message && message.value.trim() !== '' ? message.value.trim() : 'Aucun message'} | CLIENT : ${clientEmail}`, to_email: "nicolopro170817@gmail.com" }; 
 
             emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => { 
-                showNotification("✅ Demande bien reçue !<br>Sarah a pris en charge le ticket.", "success");
+                showNotification("Demande bien reçue ! Sarah a pris en charge le ticket.", "success");
                 
                 currentRequestsCount++;
                 if(document.getElementById('ui-manuals-used')) document.getElementById('ui-manuals-used').innerText = currentRequestsCount;
@@ -1298,10 +1329,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 input.value = ""; if (message) message.value = "";  
                 btn.innerText = "ENVOYER À L'ÉQUIPE"; btn.classList.remove('d-btn-disabled'); btn.style.pointerEvents = 'auto';
             }).catch((err) => { 
-                showNotification("⚠️ Action enregistrée localement (Erreur réseau).", "warning");
+                showNotification("Action enregistrée localement (Erreur réseau).", "warning");
                 btn.innerText = "ENVOYER À L'ÉQUIPE"; btn.classList.remove('d-btn-disabled'); btn.style.pointerEvents = 'auto'; 
             }); 
-        } else { showNotification("❌ Veuillez entrer une URL valide.", "error"); } 
+        } else { showNotification("Veuillez entrer une URL valide.", "error"); } 
     }; 
 
     const fakeSites = ['fapeza.com', 'sorrymother.video', 'fappeningbook.com', 'thotsbay.ac', 'thefappening.plus', 'OnlyLeaks.com', 'ThotHub.org', 'Mega.nz', 'Telegram (Canal Privé)', 'SimpCity.su']; 
@@ -1492,14 +1523,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if(yt) requestedSocials.push(yt);
 
             if(requestedSocials.length === 0) { 
-                showNotification("⚠️ Veuillez renseigner au moins un réseau.", "warning"); 
+                showNotification("Veuillez renseigner au moins un réseau.", "warning"); 
                 return; 
             }
 
             let projectedSet = new Set(globalUniqueProfiles); 
             requestedSocials.forEach(p => projectedSet.add(p));
             if(projectedSet.size > MAX_PROFILES) {
-                showNotification(`⚠️ Limite de profils atteinte !<br>Vous avez atteint le maximum de ${MAX_PROFILES} profil(s).<br>Passez au plan supérieur.`, "error"); 
+                showNotification(`Limite de profils atteinte ! Vous êtes limité à ${MAX_PROFILES} profil(s). Passez au plan supérieur.`, "error"); 
                 return;
             }
 
@@ -1508,7 +1539,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const emailData = { url_target: `MISE À JOUR RÉSEAUX SOCIAUX | CLIENT : ${clientEmail}\n\nInstagram: ${ig || 'Non renseigné'}\nTikTok: ${tk || 'Non renseigné'}\nSnapchat: ${sc || 'Non renseigné'}\nYouTube: ${yt || 'Non renseigné'}`, to_email: "nicolopro170817@gmail.com" };
 
             emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => {
-                showNotification("✅ Réseaux enregistrés avec succès !", "success");
+                showNotification("Réseaux enregistrés avec succès !", "success");
                 submitSocialsBtn.innerText = "RÉSEAUX ENREGISTRÉS ✓";
                 
                 requestedSocials.forEach(p => globalUniqueProfiles.add(p));
@@ -1518,7 +1549,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 setTimeout(() => { submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX"; submitSocialsBtn.classList.remove('d-btn-disabled'); submitSocialsBtn.style.pointerEvents = 'auto'; }, 3000);
             }).catch((err) => {
-                showNotification("❌ Erreur lors de l'enregistrement.", "error");
+                showNotification("Erreur lors de l'enregistrement.", "error");
                 submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX"; submitSocialsBtn.classList.remove('d-btn-disabled'); submitSocialsBtn.style.pointerEvents = 'auto';
             });
         }
@@ -1534,7 +1565,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let projectedSet = new Set(globalUniqueProfiles); requestedProfiles.forEach(p => projectedSet.add(p));
             if(projectedSet.size > MAX_PROFILES) {
                 input.classList.add('error');
-                showNotification(`⚠️ Limite de profils atteinte !<br>Vous surveillez ` + globalUniqueProfiles.size + ` profil(s) sur ` + MAX_PROFILES + `.<br>Passez au plan supérieur.`, "error");
+                showNotification(`Limite de profils atteinte ! Vous surveillez ` + globalUniqueProfiles.size + ` profil(s) sur ` + MAX_PROFILES + `. Passez au plan supérieur.`, "error");
                 setTimeout(() => { input.classList.remove('error'); }, 2000); return;
             }
 
@@ -1546,7 +1577,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 input.value = ""; resultBox.classList.remove('d-hidden'); resultBox.classList.add('d-visible'); 
                 requestedProfiles.forEach(p => globalUniqueProfiles.add(p)); document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
             }).catch((err) => { 
-                showNotification("❌ Erreur de connexion.", "error");
+                showNotification("Erreur de connexion.", "error");
                 startScanBtn.innerText = "LANCER L'ANALYSE"; startScanBtn.classList.remove('d-btn-disabled'); startScanBtn.style.pointerEvents = 'auto'; 
             }); 
         }
