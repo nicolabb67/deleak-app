@@ -400,30 +400,35 @@
   }
   .proof-modal-close:hover { background: #e9ecef; color: var(--danger); }
   
-  /* GRID INTERNE DE LA MODAL (CARTES PURES) */
+  /* GRID INTERNE DE LA MODAL (PETITES CARTES) */
   #proof-gallery-container {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
       margin-top: 20px;
   }
   .proof-card {
       background: #fff;
       border: 1px solid var(--border-light);
       border-radius: 12px;
-      padding: 8px; /* Espace blanc autour de l'image (façon polaroid) */
-      box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+      padding: 6px; 
+      box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+      transition: 0.2s;
       display: flex;
-      flex-direction: column;
-      height: 180px; 
+      justify-content: center;
+      align-items: center;
   }
-  .proof-card-img {
+  .proof-card:hover {
+      border-color: var(--primary-soft);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      transform: translateY(-2px);
+  }
+  .proof-pure-img {
       width: 100%;
-      height: 100%; 
-      object-fit: cover;
+      height: 150px;
       border-radius: 8px;
+      object-fit: cover;
       display: block;
-      background: #f8f9fa;
   }
 </style> 
 </head> 
@@ -907,18 +912,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalNotifications = 0;
     window.proofImagesData = window.proofImagesData || {}; 
 
-    // --- FONCTIONS MODAL PREUVES (AJOUTÉES ICI) ---
-    window.toggleAccordion = function(headerElement) {
-        const item = headerElement.parentElement;
-        const isActive = item.classList.contains('active');
-        
-        document.querySelectorAll('.scan-accordion-item').forEach(el => el.classList.remove('active'));
-        
-        if (!isActive) {
-            item.classList.add('active');
-        }
-    }
+    // Variable pour stocker les actions Airtable
+    let airtableActions = [];
 
+    // --- FONCTIONS MODAL PREUVES ---
     window.openProofModal = function(recordId) {
         if(!recordId) return;
         const images = window.proofImagesData[recordId] || [];
@@ -929,7 +926,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let gridHtml = '';
             images.forEach(img => {
                 gridHtml += `
-                <div class="proof-card">
+                <div class="proof-card" style="border:none; box-shadow:none; padding:0; background:transparent;">
                     <img src="${img.url}" alt="Preuve de fuite" class="proof-pure-img">
                 </div>`;
             });
@@ -950,6 +947,17 @@ document.addEventListener('DOMContentLoaded', () => {
             closeProofModal();
         }
     });
+
+    window.toggleAccordion = function(headerElement) {
+        const item = headerElement.parentElement;
+        const isActive = item.classList.contains('active');
+        
+        document.querySelectorAll('.scan-accordion-item').forEach(el => el.classList.remove('active'));
+        
+        if (!isActive) {
+            item.classList.add('active');
+        }
+    }
 
     function updateMainMenuBadge() {
         const mainBadge = document.getElementById('badge-manual-main');
@@ -1018,9 +1026,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlPlan = new URLSearchParams(window.location.search).get('plan') || localStorage.getItem('deleak_plan') || '';
     setPlanLimits(urlPlan);
 
-    // ==========================================
-    // GESTION DES REGLAGES ET DE MEMBERSTACK
-    // ==========================================
     window.addEventListener('message', function(event) {
         if (typeof event.data !== 'string') return;
         
@@ -1030,7 +1035,6 @@ document.addEventListener('DOMContentLoaded', () => {
             setPlanLimits(planId);
         }
         
-        // Retour de mise à jour du profil par Memberstack
         if (event.data === 'ms-profile-updated') {
             showNotification("Profil mis à jour avec succès !", "success");
             let btn = document.getElementById('btn-update-profile');
@@ -1039,7 +1043,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.classList.remove('d-btn-disabled');
                 btn.style.pointerEvents = 'auto';
             }
-            // Met à jour le nom dans la sidebar si on l'a changé
             let newName = document.getElementById('settings-name').value;
             if(newName && document.getElementById('sidebar-user-name')) {
                 document.getElementById('sidebar-user-name').innerText = newName;
@@ -1048,7 +1051,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // Retour d'erreur de mise à jour de mot de passe par Memberstack
         if (event.data === 'ms-pwd-error') {
             showNotification("Erreur : l'ancien mot de passe est incorrect.", "error");
             let btn = document.getElementById('btn-update-pwd');
@@ -1059,7 +1061,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Retour succès mot de passe
         if (event.data === 'ms-pwd-success') {
             showNotification("Mot de passe modifié avec succès !", "success");
             let btn = document.getElementById('btn-update-pwd');
@@ -1114,6 +1115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const AIRTABLE_TABLE_NAME = "Tickets"; 
     const AIRTABLE_MANUAL_TABLE = "Demandes";
     const AIRTABLE_EVAL_TABLE = "Evaluations"; 
+    const AIRTABLE_ACTIONS_TABLE = "Actions"; // <--- NOUVELLE TABLE
 
     let mainChart; 
     let globalChartRecords = []; 
@@ -1312,6 +1314,31 @@ document.addEventListener('DOMContentLoaded', () => {
             } 
         }); 
     } 
+
+    async function loadCustomActionsFromAirtable() {
+        try {
+            const formula = encodeURIComponent(`{Client_Email}='${clientEmail}'`);
+            const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_ACTIONS_TABLE}?filterByFormula=${formula}`;
+            
+            const response = await fetch(url, { headers: { "Authorization": `Bearer ${AIRTABLE_PAT}` } });
+            if(response.ok) {
+                const data = await response.json();
+                if(data.records) {
+                    airtableActions = data.records.map(r => {
+                        return {
+                            url: r.fields.URL || "Général",
+                            type: r.fields.Type || "custom",
+                            site: r.fields.Site || "Équipe DeLeak",
+                            time: new Date(r.fields.Date_Creation ? r.fields.Date_Creation : r.createdTime).getTime()
+                        };
+                    });
+                    if(typeof renderActionsLog === 'function') renderActionsLog();
+                }
+            }
+        } catch(e) {
+            console.log("Table Actions custom introuvable ou vide.");
+        }
+    }
 
     async function renderAgentTickets() { 
         const container = document.getElementById('ticket-list'); 
@@ -1555,6 +1582,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             });
                         } else { domHtml = "<span style='color:#6c757d; font-size:13px;'>Aucun détail fourni.</span>"; }
 
+                        // --- LIENS CLIQUABLES CONSERVÉS EXACTEMENT COMME AVANT ---
                         let linksHtml = "<ul style='padding-left:15px; margin:0;'>";
                         if(latestRecord.Liens) {
                             const linksArray = latestRecord.Liens.split(',');
@@ -1636,7 +1664,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    try { renderHistory(); generateReportCards(); updateUrlSelector(); renderActionsLog(); } catch(e) { }
+    try { loadCustomActionsFromAirtable(); renderHistory(); generateReportCards(); updateUrlSelector(); } catch(e) { }
     loadChartDataFromAirtable(); renderAgentTickets(); loadEvaluationsFromAirtable(); 
 
     window.submitManualRequest = function() { 
@@ -1703,6 +1731,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!container || !selector) return;
         const selectedUrl = selector.value; const now = Date.now(); let allActions = []; 
 
+        // 1. Actions fictives automatiques
         scanHistory.forEach(scan => { 
             if (selectedUrl !== 'all' && scan.url !== selectedUrl) return; 
             const scanTime = scan.timestamp || (now - 3600000); const elapsed = now - scanTime; const safeUrl = String(scan.url || ""); 
@@ -1717,6 +1746,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } 
         }); 
 
+        // 2. Actions utilisateur locales
         let userActions = [];
         try {
             const raw = localStorage.getItem('delic_user_actions');
@@ -1724,6 +1754,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e){}
         
         userActions.forEach(action => { if (selectedUrl !== 'all' && !action.url.includes(selectedUrl)) return; allActions.push(action); });
+
+        // 3. Actions depuis Airtable
+        airtableActions.forEach(action => {
+            if (selectedUrl !== 'all' && !action.url.includes(selectedUrl)) return;
+            allActions.push(action);
+        });
 
         allActions.sort((a, b) => b.time - a.time); const displayActions = allActions.slice(0, 8); 
 
@@ -1735,11 +1771,12 @@ document.addEventListener('DOMContentLoaded', () => {
             { type: 'leak', label: 'Nouveau leak détecté sur', icon: 'fa-user-secret', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.1)' }, 
             { type: 'removed', label: 'Contenu supprimé sur', icon: 'fa-check-circle', color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
             { type: 'manual_req', label: 'Demande manuelle à', icon: 'fa-hand-paper', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
-            { type: 'eval_decision', label: 'Évaluation traitée :', icon: 'fa-gavel', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' }
+            { type: 'eval_decision', label: 'Évaluation traitée :', icon: 'fa-gavel', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
+            { type: 'custom', label: 'Intervention DeLeak :', icon: 'fa-bolt', color: '#cb6ce6', bg: 'rgba(203, 108, 230, 0.1)' } 
         ];
 
         displayActions.forEach(action => { 
-            const template = actionTemplates.find(a => a.type === action.type); if(!template) return;
+            const template = actionTemplates.find(a => a.type === action.type) || actionTemplates[5]; // Fallback sur custom
             const timeAgo = Math.floor((now - action.time) / 60000); 
             let timeText = timeAgo < 1 ? "À l'instant" : `Il y a ${timeAgo} min`; 
             if (timeAgo > 60) { const hours = Math.floor(timeAgo/60); if(hours > 24) timeText = `Il y a ${Math.floor(hours/24)}j`; else timeText = `Il y a ${hours}h`; } 
