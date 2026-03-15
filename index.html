@@ -1010,58 +1010,17 @@ document.addEventListener('DOMContentLoaded', () => {
     setPlanLimits(urlPlan);
 
     window.addEventListener('message', function(event) {
-        if (typeof event.data !== 'string') return;
-        
-        if (event.data.startsWith('ms-plan-active:')) {
+        if (typeof event.data === 'string' && event.data.startsWith('ms-plan-active:')) {
             let planId = event.data.split(':')[1];
             localStorage.setItem('deleak_plan', planId);
             setPlanLimits(planId);
-        }
-        
-        if (event.data === 'ms-profile-updated') {
-            showNotification("Profil mis à jour avec succès !", "success");
-            let btn = document.getElementById('btn-update-profile');
-            if(btn) {
-                btn.innerHTML = "Enregistrer les modifications";
-                btn.classList.remove('d-btn-disabled');
-                btn.style.pointerEvents = 'auto';
-            }
-            let newName = document.getElementById('settings-name').value;
-            if(newName && document.getElementById('sidebar-user-name')) {
-                document.getElementById('sidebar-user-name').innerText = newName;
-                document.getElementById('sidebar-user-initial').innerText = newName.charAt(0).toUpperCase();
-                localStorage.setItem('deleak_clientName', newName);
-            }
-        }
-        
-        if (event.data === 'ms-pwd-error') {
-            showNotification("Erreur : l'ancien mot de passe est incorrect.", "error");
-            let btn = document.getElementById('btn-update-pwd');
-            if(btn) {
-                btn.innerHTML = "Mettre à jour le mot de passe";
-                btn.classList.remove('d-btn-disabled');
-                btn.style.pointerEvents = 'auto';
-            }
-        }
-
-        if (event.data === 'ms-pwd-success') {
-            showNotification("Mot de passe modifié avec succès !", "success");
-            let btn = document.getElementById('btn-update-pwd');
-            if(btn) {
-                btn.innerHTML = "Mettre à jour le mot de passe";
-                btn.classList.remove('d-btn-disabled');
-                btn.style.pointerEvents = 'auto';
-            }
-            document.getElementById('settings-old-pwd').value = '';
-            document.getElementById('settings-new-pwd').value = '';
         }
     });
 
     function safeStr(val) { return val ? String(val) : ""; }
 
     window.logUserAction = function(type, url, siteContext) {
-        let userActions = [];
-        try { userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || []; } catch(e) {}
+        let userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
         userActions.push({ type: type, url: url, site: siteContext, time: Date.now() });
         if(userActions.length > 20) userActions = userActions.slice(-20);
         localStorage.setItem('delic_user_actions', JSON.stringify(userActions));
@@ -1085,9 +1044,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const EMAIL_PUBLIC_KEY = "moIJEBbO2F2sAEzGD"; 
     const EMAIL_SERVICE_ID = "service_cjqd13b"; 
     const EMAIL_TEMPLATE_ID = "template_cx3is9f"; 
-    if(typeof emailjs !== 'undefined') {
-        emailjs.init(EMAIL_PUBLIC_KEY); 
-    }
+    if (typeof emailjs !== 'undefined') { emailjs.init(EMAIL_PUBLIC_KEY); }
 
     const AIRTABLE_PAT = "patWChXguNH2uTbYb.4bec15a47b62e02b192f76ab845348a2c24454b862051b8ec59f65d88c414b8e";  
     const AIRTABLE_BASE_ID = "appkrXd41icSQ9nhP";  
@@ -1097,12 +1054,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let mainChart; 
     let globalChartRecords = []; 
-    let scanHistory = [];
-    try { scanHistory = JSON.parse(localStorage.getItem('delic_history')) || []; } catch(e) {}
-    
-    const chartCanvas = document.getElementById('mainChart'); 
-    if(chartCanvas) {
-        const ctx = chartCanvas.getContext('2d');
+    let scanHistory = JSON.parse(localStorage.getItem('delic_history')) || []; 
+    const ctxElement = document.getElementById('mainChart');
+    if (ctxElement) {
+        const ctx = ctxElement.getContext('2d'); 
         const urlColors = ['#cb6ce6', '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']; 
 
         mainChart = new Chart(ctx, { 
@@ -1113,7 +1068,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 plugins: { legend: { display: true, position: 'top', align: 'end', labels: { boxWidth: 10, usePointStyle: true, font: {family:'Inter'} } } },  
                 scales: { x: { display: true, grid: { display: false }, ticks: { color: '#9ca3af', font: {family:'Inter'} } }, y: { display: true, grid: { color: '#f3f4f6' }, ticks: { color: '#9ca3af', font: {family:'Inter'}, beginAtZero: true } } }  
             } 
-        }); 
+        });
     }
 
     function formatNumber(num) { 
@@ -1159,8 +1114,11 @@ document.addEventListener('DOMContentLoaded', () => {
     } 
 
     function updateChartWithAirtable() {
-        if(!mainChart) return;
-        const filter = document.getElementById('chart-filter').value; 
+        if (!mainChart) return;
+        const filterEl = document.getElementById('chart-filter');
+        if (!filterEl) return;
+        
+        const filter = filterEl.value; 
         const allLabels = getCalendarLabels(filter); 
         
         const groupedData = {};
@@ -1180,6 +1138,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const datasets = []; 
         let colorIndex = 0; 
+        const urlColors = ['#cb6ce6', '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
         
         if (Object.keys(groupedData).length === 0) { 
             datasets.push({ label: 'Aucune donnée', data: new Array(allLabels.length).fill(0), borderColor: '#e5e7eb', borderWidth: 2, pointRadius: 0, fill: false }); 
@@ -1199,18 +1158,18 @@ document.addEventListener('DOMContentLoaded', () => {
         mainChart.update();
     }
 
-    if(document.getElementById('chart-filter')) {
+    if (document.getElementById('chart-filter')) {
         document.getElementById('chart-filter').addEventListener('change', updateChartWithAirtable);
     }
 
     function updateDashboardStats() { 
         if(globalChartRecords.length === 0) {
-            document.getElementById('ui-profiles-used').innerText = 0;
+            if(document.getElementById('ui-profiles-used')) document.getElementById('ui-profiles-used').innerText = 0;
             return;
         }
 
         globalUniqueProfiles = new Set(globalChartRecords.map(r => r.fields.Pseudos).filter(Boolean));
-        document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
+        if(document.getElementById('ui-profiles-used')) document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
 
         const totalUrls = globalUniqueProfiles.size; 
         let totalLeaks = 0; 
@@ -1234,14 +1193,14 @@ document.addEventListener('DOMContentLoaded', () => {
             totalRemoved += Math.floor(item.leaks * 0.90); 
         });
 
-        document.getElementById('dash-total-urls').innerText = totalUrls; 
-        document.getElementById('dash-total-leaks').innerText = formatNumber(totalLeaks); 
-        document.getElementById('dash-removed-leaks').innerText = formatNumber(totalRemoved); 
+        if(document.getElementById('dash-total-urls')) document.getElementById('dash-total-urls').innerText = totalUrls; 
+        if(document.getElementById('dash-total-leaks')) document.getElementById('dash-total-leaks').innerText = formatNumber(totalLeaks); 
+        if(document.getElementById('dash-removed-leaks')) document.getElementById('dash-removed-leaks').innerText = formatNumber(totalRemoved); 
     } 
 
     function updateDashboardStatsFallback() {
         const uniqueUrlSet = new Set(scanHistory.map(s => s.url)); 
-        document.getElementById('dash-total-urls').innerText = uniqueUrlSet.size; 
+        if(document.getElementById('dash-total-urls')) document.getElementById('dash-total-urls').innerText = uniqueUrlSet.size; 
     }
 
     const billingToggle = document.getElementById('toggle-billing-cycle');
@@ -1287,6 +1246,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function renderAgentTickets() { 
         const container = document.getElementById('ticket-list'); 
+        if(!container) return;
         container.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> Chargement des requêtes...</div>';
 
         try {
@@ -1311,7 +1271,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     totalNotifications += unreadAgentMessages;
                     updateMainMenuBadge();
                 } else {
-                    badgeAgent.style.display = 'none';
+                    if(badgeAgent) badgeAgent.style.display = 'none';
                 }
                 
                 if (data.records.length > 0) {
@@ -1379,7 +1339,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     totalNotifications += unreadEvalMessages;
                     updateMainMenuBadge();
                 } else {
-                    badgeReview.style.display = 'none';
+                    if(badgeReview) badgeReview.style.display = 'none';
                 }
 
                 container.innerHTML = ''; 
@@ -1437,7 +1397,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const emailData = { url_target: `ÉVALUATION | DÉCISION : ${decision} | URL : ${url} | CLIENT: ${clientEmail}`, to_email: "nicolopro170817@gmail.com" };
-        if(typeof emailjs !== 'undefined') { emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData); }
+        if (typeof emailjs !== 'undefined') { emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData); }
 
         const newStatus = decision.includes('GARDER') ? 'Validé' : 'À supprimer';
         fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_EVAL_TABLE}/${recordId}`, {
@@ -1487,7 +1447,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(!response.ok) throw new Error("Erreur de récupération");
 
             const data = await response.json();
-            loadingMsg.style.display = 'none';
+            if(loadingMsg) loadingMsg.style.display = 'none';
 
             if(data.records && data.records.length > 0) {
                 
@@ -1526,7 +1486,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             });
                         } else { domHtml = "<span style='color:#6c757d; font-size:13px;'>Aucun détail fourni.</span>"; }
 
-                        // --- LIENS CLIQUABLES CONSERVÉS EXACTEMENT COMME AVANT ---
                         let linksHtml = "<ul style='padding-left:15px; margin:0;'>";
                         if(latestRecord.Liens) {
                             const linksArray = latestRecord.Liens.split(',');
@@ -1537,7 +1496,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else { linksHtml += "<li><span style='color:#6c757d; text-decoration:none;'>Aucun lien fourni.</span></li>"; }
                         linksHtml += "</ul>";
 
-                        // --- BOUTON DE PREUVES VISUELLES ---
                         let proofBtnHtml = "";
                         if(latestRecord.Preuves_Images && Array.isArray(latestRecord.Preuves_Images) && latestRecord.Preuves_Images.length > 0) {
                             window.proofImagesData[recordId] = latestRecord.Preuves_Images;
@@ -1604,7 +1562,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } else { emptyMsg.style.display = 'block'; }
         } catch(err) {
-            loadingMsg.style.display = 'none'; errorMsg.style.display = 'block';
+            if(loadingMsg) loadingMsg.style.display = 'none'; 
+            if(errorMsg) errorMsg.style.display = 'block';
         }
     }
 
