@@ -2,6 +2,7 @@
 <html lang="fr"> 
 <head> 
 <meta charset="UTF-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script> 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
@@ -173,10 +174,6 @@
   .d-btn-secondary { background: transparent; color: var(--primary); border: 2px solid var(--primary); padding: 12px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: 0.2s; width: 100%; margin-top: 15px; } 
   .d-btn-secondary:hover { background: var(--primary-soft); color: var(--primary); } 
   .d-btn-disabled { opacity: 0.5; cursor: not-allowed; border-color: #ccc; color: #ccc; box-shadow: none !important; transform: none !important; } 
-
-  /* Bouton Preuves */
-  .d-btn-proof { background: transparent; color: #be123c; border: 1px solid #fecdd3; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 12px; transition: 0.2s; display: inline-block; margin-top: 15px; }
-  .d-btn-proof:hover { background: #ffe4e6; border-color: #f43f5e; }
 
   /* Boutons Action Review */ 
   .d-btn-approve { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; } 
@@ -430,6 +427,98 @@
       object-fit: cover;
       display: block;
   }
+
+  /* ========================================================= */
+  /* --- 5. RESPONSIVE / MOBILE DESIGN --- */
+  /* ========================================================= */
+  
+  .mobile-header {
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      padding: 15px 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 900;
+  }
+  
+  .mobile-header img { height: 35px; object-fit: contain; }
+  
+  .mobile-menu-btn {
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      color: var(--primary);
+      cursor: pointer;
+  }
+
+  .sidebar-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 998;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+  }
+  .sidebar-overlay.open {
+      display: block;
+      opacity: 1;
+  }
+
+  @media (max-width: 992px) {
+      .delic-wrapper { flex-direction: column; overflow-y: auto; }
+      
+      .mobile-header { display: flex; }
+      
+      .d-sidebar {
+          position: fixed;
+          left: -300px;
+          top: 0;
+          height: 100vh;
+          width: 280px;
+          z-index: 999;
+          transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .d-sidebar.open { left: 0; }
+      
+      /* Libérer l'espace pour le header mobile */
+      .d-main { padding: 90px 20px 40px 20px; overflow-y: visible; }
+      
+      /* Grilles fluides */
+      .d-grid-4 { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+      .d-grid-3 { grid-template-columns: 1fr; gap: 15px; }
+      .d-grid-2 { grid-template-columns: 1fr; gap: 15px; }
+      
+      /* Redimensionner cartes et textes */
+      .d-scan-box { padding: 25px 15px; margin: 20px auto; }
+      .d-input-group { flex-direction: column; gap: 10px; }
+      h1 { font-size: 26px; }
+      .d-big-num { font-size: 32px; }
+      
+      /* Tableau d'actions et Graphique */
+      .d-chart-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .d-chart-select { width: 100%; }
+      .d-action-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .d-action-time { padding-left: 50px; font-size: 11px; }
+      
+      /* Boutons Evaluation */
+      .d-review-item { flex-direction: column; align-items: flex-start; gap: 15px; }
+      .d-review-item > div:last-child { width: 100%; flex-direction: column; gap: 10px; }
+      .d-review-item button { width: 100%; text-align: center; }
+      
+      /* Toast mobile */
+      #custom-toast { left: 20px; right: 20px; bottom: 20px; max-width: none; }
+      
+      /* Toggle Abonnement Mobile */
+      #view-billing > div:first-of-type { flex-direction: column; gap: 15px; text-align: center; }
+  }
+
+  @media (max-width: 480px) {
+      .d-grid-4 { grid-template-columns: 1fr; }
+  }
 </style> 
 </head> 
 <body> 
@@ -445,6 +534,12 @@
 </div>
 
 <div class="delic-wrapper"> 
+  
+  <div class="mobile-header">
+      <img src="https://cdn.prod.website-files.com/6970e25065cc38099d4289a0/69932a04e8d78ec1c0b527c5_Copie_de_Copie_de_Ciel__7_-removebg-preview.png" alt="Logo DeLeak">
+      <button class="mobile-menu-btn" id="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+  </div>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
    
   <div class="d-sidebar"> 
     <div class="d-logo"> 
@@ -1582,7 +1677,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             });
                         } else { domHtml = "<span style='color:#6c757d; font-size:13px;'>Aucun détail fourni.</span>"; }
 
-                        // --- LIENS CLIQUABLES CONSERVÉS EXACTEMENT COMME AVANT ---
                         let linksHtml = "<ul style='padding-left:15px; margin:0;'>";
                         if(latestRecord.Liens) {
                             const linksArray = latestRecord.Liens.split(',');
@@ -1997,6 +2091,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }); 
 
+    // --- HACK MEMBERSTACK ULTIME ---
     const upgradeBtns = document.querySelectorAll('.ms-upgrade-btn');
     upgradeBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -2008,7 +2103,6 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
             btn.style.opacity = '0.7';
 
-            // Envoie l'ordre à la page Webflow parente
             window.parent.postMessage('ms-update:' + priceId, '*');
 
             setTimeout(() => {
@@ -2025,10 +2119,33 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalText = portalBtn.innerHTML;
             portalBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ouverture...';
 
-            // Envoie l'ordre à la page Webflow parente
             window.parent.postMessage('ms-portal', '*');
 
             setTimeout(() => { portalBtn.innerHTML = originalText; }, 2000);
+        });
+    }
+
+    // --- LOGIQUE MENU MOBILE ---
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const sidebar = document.querySelector('.d-sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    if(mobileMenuBtn && sidebar && sidebarOverlay) {
+        function toggleMenu() {
+            sidebar.classList.toggle('open');
+            sidebarOverlay.classList.toggle('open');
+        }
+        mobileMenuBtn.addEventListener('click', toggleMenu);
+        sidebarOverlay.addEventListener('click', toggleMenu);
+        
+        // Auto-close menu sur mobile quand on clique sur un lien (sauf le menu déroulant "Manuel")
+        document.querySelectorAll('.d-nav-btn, .d-sub-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if(window.innerWidth <= 992 && btn.id !== 'btn-manual-toggle') {
+                    sidebar.classList.remove('open');
+                    sidebarOverlay.classList.remove('open');
+                }
+            });
         });
     }
 
