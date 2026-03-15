@@ -174,10 +174,6 @@
   .d-btn-secondary:hover { background: var(--primary-soft); color: var(--primary); } 
   .d-btn-disabled { opacity: 0.5; cursor: not-allowed; border-color: #ccc; color: #ccc; box-shadow: none !important; transform: none !important; } 
 
-  /* Bouton Preuves */
-  .d-btn-proof { background: transparent; color: #be123c; border: 1px solid #fecdd3; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 12px; transition: 0.2s; display: inline-block; margin-top: 15px; }
-  .d-btn-proof:hover { background: #ffe4e6; border-color: #f43f5e; }
-
   /* Boutons Action Review */ 
   .d-btn-approve { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; } 
   .d-btn-approve:hover:not(:disabled) { background: #059669; }
@@ -352,83 +348,46 @@
       transform: rotate(180deg);
   }
 
-  /* --- GALERIE PREUVES (MODAL) --- */
-  .proof-modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      z-index: 9999999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: 0.3s;
-      backdrop-filter: blur(5px);
+  /* --- GRILLE DE PREUVES DIRECTE --- */
+  .proofs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 15px;
+      margin-top: 10px;
   }
-  .proof-modal-overlay.open {
-      opacity: 1;
-      pointer-events: auto;
-  }
-  .proof-modal-content {
+  .proof-card {
       background: #fff;
-      border-radius: 16px;
-      width: 90%;
-      max-width: 900px;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 30px;
-      position: relative;
-      transform: scale(0.9);
-      transition: 0.3s;
-  }
-  .proof-modal-overlay.open .proof-modal-content {
-      transform: scale(1);
-  }
-  .proof-modal-close {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: #f1f3f5;
-      border: none;
-      width: 40px; height: 40px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 18px;
-      color: var(--text-dark);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.02);
       transition: 0.2s;
   }
-  .proof-modal-close:hover { background: #e9ecef; color: var(--danger); }
-  
-  /* GRID INTERNE DE LA MODAL (UNIQUEMENT LES IMAGES EN COLONNES) */
-  #proof-gallery-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
+  .proof-card:hover {
+      border-color: var(--primary-soft);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      transform: translateY(-2px);
   }
-  .proof-pure-img {
+  .proof-card-img {
       width: 100%;
-      height: auto;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-      border: 1px solid #e9ecef;
+      height: 90px;
       object-fit: cover;
-      display: block;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: #f8f9fa;
+  }
+  .proof-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dark);
+      padding: 0 4px;
   }
 </style> 
 </head> 
 <body> 
-
-<div class="proof-modal-overlay" id="proof-modal">
-    <div class="proof-modal-content">
-        <button class="proof-modal-close" onclick="closeProofModal()"><i class="fas fa-times"></i></button>
-        <h3 style="margin-top:0; font-size:22px; margin-bottom: 5px; color:var(--text-dark);"><i class="fas fa-image" style="color:var(--primary); margin-right: 8px;"></i> Captures d'écran des infractions</h3>
-        <p style="font-size:13px; color:var(--text-muted); margin-bottom: 20px;">Voici les preuves visuelles récoltées par nos robots de scan sur les sites pirates.</p>
-        <div id="proof-gallery-container">
-            </div>
-    </div>
-</div>
 
 <div class="delic-wrapper"> 
    
@@ -898,39 +857,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalNotifications = 0;
     window.proofImagesData = window.proofImagesData || {}; 
 
-    // --- FONCTIONS MODAL PREUVES ---
-    window.openProofModal = function(recordId) {
-        if(!recordId) return;
-        const images = window.proofImagesData[recordId] || [];
-        const container = document.getElementById('proof-gallery-container');
-        container.innerHTML = '';
-        
-        if (images.length > 0) {
-            let gridHtml = '';
-            images.forEach(img => {
-                gridHtml += `
-                <div class="proof-card" style="border:none; box-shadow:none; padding:0; background:transparent;">
-                    <img src="${img.url}" alt="Preuve de fuite" class="proof-pure-img">
-                </div>`;
-            });
-            container.innerHTML = gridHtml;
-        } else {
-            container.innerHTML = "<p style='color:var(--text-muted); font-size:14px;'>Aucune image trouvée.</p>";
-        }
-        
-        document.getElementById('proof-modal').classList.add('open');
-    }
-
-    window.closeProofModal = function() {
-        document.getElementById('proof-modal').classList.remove('open');
-    }
-
-    document.getElementById('proof-modal').addEventListener('click', function(e) {
-        if(e.target === this) {
-            closeProofModal();
-        }
-    });
-
     window.toggleAccordion = function(headerElement) {
         const item = headerElement.parentElement;
         const isActive = item.classList.contains('active');
@@ -1017,6 +943,44 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('deleak_plan', planId);
             setPlanLimits(planId);
         }
+        
+        if (event.data === 'ms-profile-updated') {
+            showNotification("Profil mis à jour avec succès !", "success");
+            let btn = document.getElementById('btn-update-profile');
+            if(btn) {
+                btn.innerHTML = "Enregistrer les modifications";
+                btn.classList.remove('d-btn-disabled');
+                btn.style.pointerEvents = 'auto';
+            }
+            let newName = document.getElementById('settings-name').value;
+            if(newName && document.getElementById('sidebar-user-name')) {
+                document.getElementById('sidebar-user-name').innerText = newName;
+                document.getElementById('sidebar-user-initial').innerText = newName.charAt(0).toUpperCase();
+                localStorage.setItem('deleak_clientName', newName);
+            }
+        }
+        
+        if (event.data === 'ms-pwd-error') {
+            showNotification("Erreur : l'ancien mot de passe est incorrect.", "error");
+            let btn = document.getElementById('btn-update-pwd');
+            if(btn) {
+                btn.innerHTML = "Mettre à jour le mot de passe";
+                btn.classList.remove('d-btn-disabled');
+                btn.style.pointerEvents = 'auto';
+            }
+        }
+
+        if (event.data === 'ms-pwd-success') {
+            showNotification("Mot de passe modifié avec succès !", "success");
+            let btn = document.getElementById('btn-update-pwd');
+            if(btn) {
+                btn.innerHTML = "Mettre à jour le mot de passe";
+                btn.classList.remove('d-btn-disabled');
+                btn.style.pointerEvents = 'auto';
+            }
+            document.getElementById('settings-old-pwd').value = '';
+            document.getElementById('settings-new-pwd').value = '';
+        }
     });
 
     function safeStr(val) { return val ? String(val) : ""; }
@@ -1047,7 +1011,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const EMAIL_PUBLIC_KEY = "moIJEBbO2F2sAEzGD"; 
     const EMAIL_SERVICE_ID = "service_cjqd13b"; 
     const EMAIL_TEMPLATE_ID = "template_cx3is9f"; 
-    if(typeof emailjs !== 'undefined') { emailjs.init(EMAIL_PUBLIC_KEY); }
+    if (typeof emailjs !== 'undefined') { emailjs.init(EMAIL_PUBLIC_KEY); }
 
     const AIRTABLE_PAT = "patWChXguNH2uTbYb.4bec15a47b62e02b192f76ab845348a2c24454b862051b8ec59f65d88c414b8e";  
     const AIRTABLE_BASE_ID = "appkrXd41icSQ9nhP";  
@@ -1121,9 +1085,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } 
 
     function updateChartWithAirtable() {
-        if(!mainChart) return;
+        if (!mainChart) return;
         const filterEl = document.getElementById('chart-filter');
-        if(!filterEl) return;
+        if (!filterEl) return;
+        
         const filter = filterEl.value; 
         const allLabels = getCalendarLabels(filter); 
         
@@ -1164,7 +1129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mainChart.update();
     }
 
-    if(document.getElementById('chart-filter')) {
+    if (document.getElementById('chart-filter')) {
         document.getElementById('chart-filter').addEventListener('change', updateChartWithAirtable);
     }
 
@@ -1453,7 +1418,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(!response.ok) throw new Error("Erreur de récupération");
 
             const data = await response.json();
-            loadingMsg.style.display = 'none';
+            if(loadingMsg) loadingMsg.style.display = 'none';
 
             if(data.records && data.records.length > 0) {
                 
@@ -1503,11 +1468,27 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else { linksHtml += "<li><span style='color:#6c757d; text-decoration:none;'>Aucun lien fourni.</span></li>"; }
                         linksHtml += "</ul>";
 
-                        // --- BOUTON DE PREUVES VISUELLES ---
-                        let proofBtnHtml = "";
+                        // --- GRILLE D'IMAGES DIRECTE (SANS BOUTON NI MODAL) ---
+                        let proofsGridHtml = "";
                         if(latestRecord.Preuves_Images && Array.isArray(latestRecord.Preuves_Images) && latestRecord.Preuves_Images.length > 0) {
-                            window.proofImagesData[recordId] = latestRecord.Preuves_Images;
-                            proofBtnHtml = `<button class="d-btn-proof" onclick="openProofModal('${recordId}')"><i class="fas fa-eye" style="margin-right: 5px;"></i> Regarder les images</button>`;
+                            proofsGridHtml = '<div class="proofs-grid">';
+                            latestRecord.Preuves_Images.forEach(img => {
+                                let domainName = img.filename || 'site-suspect.com';
+                                domainName = domainName.replace(/\.[^/.]+$/, ""); // Enlève l'extension
+                                if(!domainName.includes('.')) domainName += '.com';
+                                
+                                proofsGridHtml += `
+                                <div class="proof-card">
+                                    <img src="${img.url}" alt="Preuve" class="proof-card-img">
+                                    <div class="proof-card-footer">
+                                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%;">${domainName}</span>
+                                        <i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i>
+                                    </div>
+                                </div>`;
+                            });
+                            proofsGridHtml += '</div>';
+                        } else {
+                            proofsGridHtml = "<span style='color:#6c757d; font-size:13px;'>Aucune capture d'écran disponible pour ce scan.</span>";
                         }
 
                         const leaksCount = parseInt(latestRecord.Leaks) || 0;
@@ -1549,9 +1530,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <div style="margin-top:10px;">${domHtml}</div> 
                                     </div> 
                                     <div class="d-card" style="background:#fffafc; border: 1px solid #fce7f3; padding: 20px;"> 
-                                        <h3 style="margin-top:0; font-size:16px; color:#be123c;"><i class="fas fa-link"></i> Preuves d'infractions</h3> 
-                                        <div style="margin-top:15px; font-size:13px; word-break:break-all; max-height:200px; overflow-y:auto;">${linksHtml}</div> 
-                                        ${proofBtnHtml}
+                                        <h3 style="margin-top:0; font-size:16px; color:#be123c;"><i class="fas fa-image" style="margin-right:8px;"></i> Preuves d'infractions</h3> 
+                                        <div style="margin-top:15px; max-height:300px; overflow-y:auto; overflow-x:hidden; padding-right:5px;">${proofsGridHtml}</div> 
                                     </div> 
                                 </div>
                             </div>
@@ -1894,9 +1874,82 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }); 
 
-    // =========================================================================
-    // HACK MEMBERSTACK ULTIME (POUR IFRAME GITHUB)
-    // =========================================================================
+    // --- LOGIQUE BOUTONS REGLAGES ---
+    const btnProfile = document.getElementById('btn-update-profile');
+    if (btnProfile) {
+        btnProfile.addEventListener('click', () => {
+            const newName = document.getElementById('settings-name').value.trim();
+            if(newName.length < 2) {
+                showNotification("Veuillez entrer un nom valide.", "warning");
+                return;
+            }
+            
+            btnProfile.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
+            btnProfile.classList.add('d-btn-disabled');
+            btnProfile.style.pointerEvents = 'none';
+
+            window.parent.postMessage('ms-update-profile:' + newName, '*');
+            
+            // Simulation UX
+            setTimeout(() => {
+                showNotification("Profil mis à jour avec succès !", "success");
+                btnProfile.innerHTML = 'Enregistrer les modifications';
+                btnProfile.classList.remove('d-btn-disabled');
+                btnProfile.style.pointerEvents = 'auto';
+                if (document.getElementById('sidebar-user-name')) {
+                    document.getElementById('sidebar-user-name').innerText = newName;
+                    document.getElementById('sidebar-user-initial').innerText = newName.charAt(0).toUpperCase();
+                }
+                localStorage.setItem('deleak_clientName', newName);
+            }, 1500);
+        });
+    }
+
+    const btnPwd = document.getElementById('btn-update-pwd');
+    if (btnPwd) {
+        btnPwd.addEventListener('click', () => {
+            const oldPwd = document.getElementById('settings-old-pwd').value;
+            const newPwd = document.getElementById('settings-new-pwd').value;
+            
+            if(oldPwd.length < 1 || newPwd.length < 8) {
+                showNotification("Le nouveau mot de passe doit faire au moins 8 caractères.", "warning");
+                return;
+            }
+
+            btnPwd.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vérification...';
+            btnPwd.classList.add('d-btn-disabled');
+            btnPwd.style.pointerEvents = 'none';
+
+            window.parent.postMessage('ms-update-pwd:' + oldPwd + '|' + newPwd, '*');
+            
+            // Simulation UX
+            setTimeout(() => {
+                showNotification("Mot de passe mis à jour avec succès !", "success");
+                btnPwd.innerHTML = 'Mettre à jour le mot de passe';
+                btnPwd.classList.remove('d-btn-disabled');
+                btnPwd.style.pointerEvents = 'auto';
+                document.getElementById('settings-old-pwd').value = '';
+                document.getElementById('settings-new-pwd').value = '';
+            }, 2000);
+        });
+    }
+
+    const toggles = ['notif-scan', 'notif-agent', 'notif-report'];
+    toggles.forEach(id => {
+        let el = document.getElementById(id);
+        if(el) {
+            let savedPref = localStorage.getItem('deleak_' + id);
+            if(savedPref !== null) {
+                el.checked = savedPref === 'true';
+            }
+            
+            el.addEventListener('change', (e) => {
+                localStorage.setItem('deleak_' + id, e.target.checked);
+                showNotification("Préférences mises à jour.", "success");
+            });
+        }
+    });
+
     const upgradeBtns = document.querySelectorAll('.ms-upgrade-btn');
     upgradeBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -1908,7 +1961,6 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
             btn.style.opacity = '0.7';
 
-            // Envoie l'ordre à la page Webflow parente
             window.parent.postMessage('ms-update:' + priceId, '*');
 
             setTimeout(() => {
@@ -1925,7 +1977,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalText = portalBtn.innerHTML;
             portalBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ouverture...';
 
-            // Envoie l'ordre à la page Webflow parente
             window.parent.postMessage('ms-portal', '*');
 
             setTimeout(() => { portalBtn.innerHTML = originalText; }, 2000);
