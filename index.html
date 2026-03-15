@@ -400,7 +400,7 @@
   }
   .proof-modal-close:hover { background: #e9ecef; color: var(--danger); }
   
-  /* GRID INTERNE DE LA MODAL (UNIQUEMENT LES IMAGES) */
+  /* GRID INTERNE DE LA MODAL (UNIVQUEMENT LES IMAGES) */
   #proof-gallery-container {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -411,11 +411,11 @@
       background: #fff;
       border: 1px solid var(--border-light);
       border-radius: 10px;
-      padding: 0; 
+      padding: 0; /* Plus d'espace autour */
       box-shadow: 0 4px 6px rgba(0,0,0,0.03);
       display: flex;
       flex-direction: column;
-      overflow: hidden; 
+      overflow: hidden; /* Les coins ronds coupent l'image proprement */
   }
 </style> 
 </head> 
@@ -820,7 +820,7 @@
                   </div>
                   <div>
                       <label class="d-label">Adresse E-mail</label> 
-                      <input type="email" id="settings-email" class="d-input" style="width:100%; padding: 12px 15px; background-color: #e9ecef; cursor: not-allowed;" readonly title="Pour modifier votre email, veuillez nous contacter."> 
+                      <input type="email" id="settings-email" class="d-input" style="width:100%; padding: 12px 15px; background-color: #e9ecef; cursor: not-allowed;" readonly title="Pour modifier l'email, contactez le support"> 
                   </div>
                   <button id="btn-update-profile" class="d-btn-primary" style="padding: 12px 25px; margin-top: 5px; align-self: flex-start; font-size: 14px;">Enregistrer les modifications</button> 
               </div> 
@@ -830,7 +830,7 @@
               <h3 style="margin-top:0; font-size:18px; border-bottom:1px solid var(--border-light); padding-bottom:15px; color:var(--text-dark);"><i class="fas fa-lock" style="color:var(--primary); margin-right:8px;"></i> Sécurité</h3> 
               <div class="d-input-group" style="flex-direction:column; gap:15px; margin-top:20px;"> 
                   <div>
-                      <label class="d-label">Ancien mot de passe</label> 
+                      <label class="d-label">Mot de passe actuel</label> 
                       <input type="password" id="settings-old-pwd" class="d-input" placeholder="••••••••" style="width:100%; padding: 12px 15px;"> 
                   </div>
                   <div>
@@ -966,115 +966,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlPlan = new URLSearchParams(window.location.search).get('plan') || localStorage.getItem('deleak_plan') || '';
     setPlanLimits(urlPlan);
 
-    // ==========================================
-    // GESTION DES REGLAGES ET DE MEMBERSTACK
-    // ==========================================
     window.addEventListener('message', function(event) {
-        if (typeof event.data !== 'string') return;
-        
-        if (event.data.startsWith('ms-plan-active:')) {
+        if (typeof event.data === 'string' && event.data.startsWith('ms-plan-active:')) {
             let planId = event.data.split(':')[1];
             localStorage.setItem('deleak_plan', planId);
             setPlanLimits(planId);
-        }
-        
-        // Retour de mise à jour du profil par Memberstack
-        if (event.data === 'ms-profile-updated') {
-            showNotification("Profil mis à jour avec succès !", "success");
-            let btn = document.getElementById('btn-update-profile');
-            if(btn) {
-                btn.innerHTML = "Enregistrer les modifications";
-                btn.classList.remove('d-btn-disabled');
-                btn.style.pointerEvents = 'auto';
-            }
-            // Met à jour le nom dans la sidebar si on l'a changé
-            let newName = document.getElementById('settings-name').value;
-            if(newName && document.getElementById('sidebar-user-name')) {
-                document.getElementById('sidebar-user-name').innerText = newName;
-                document.getElementById('sidebar-user-initial').innerText = newName.charAt(0).toUpperCase();
-                localStorage.setItem('deleak_clientName', newName);
-            }
-        }
-        
-        // Retour d'erreur de mise à jour de mot de passe par Memberstack
-        if (event.data === 'ms-pwd-error') {
-            showNotification("Erreur : l'ancien mot de passe est incorrect.", "error");
-            let btn = document.getElementById('btn-update-pwd');
-            if(btn) {
-                btn.innerHTML = "Mettre à jour le mot de passe";
-                btn.classList.remove('d-btn-disabled');
-                btn.style.pointerEvents = 'auto';
-            }
-        }
-
-        // Retour succès mot de passe
-        if (event.data === 'ms-pwd-success') {
-            showNotification("Mot de passe modifié avec succès !", "success");
-            let btn = document.getElementById('btn-update-pwd');
-            if(btn) {
-                btn.innerHTML = "Mettre à jour le mot de passe";
-                btn.classList.remove('d-btn-disabled');
-                btn.style.pointerEvents = 'auto';
-            }
-            document.getElementById('settings-old-pwd').value = '';
-            document.getElementById('settings-new-pwd').value = '';
-        }
-    });
-
-    // Actions des boutons Réglages
-    const btnProfile = document.getElementById('btn-update-profile');
-    if (btnProfile) {
-        btnProfile.addEventListener('click', () => {
-            const newName = document.getElementById('settings-name').value.trim();
-            if(newName.length < 2) {
-                showNotification("Veuillez entrer un nom valide.", "warning");
-                return;
-            }
-            
-            btnProfile.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
-            btnProfile.classList.add('d-btn-disabled');
-            btnProfile.style.pointerEvents = 'none';
-
-            // Envoie l'ordre de màj à Webflow
-            window.parent.postMessage('ms-update-profile:' + newName, '*');
-        });
-    }
-
-    const btnPwd = document.getElementById('btn-update-pwd');
-    if (btnPwd) {
-        btnPwd.addEventListener('click', () => {
-            const oldPwd = document.getElementById('settings-old-pwd').value;
-            const newPwd = document.getElementById('settings-new-pwd').value;
-            
-            if(oldPwd.length < 1 || newPwd.length < 8) {
-                showNotification("Le nouveau mot de passe doit faire au moins 8 caractères.", "warning");
-                return;
-            }
-
-            btnPwd.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vérification...';
-            btnPwd.classList.add('d-btn-disabled');
-            btnPwd.style.pointerEvents = 'none';
-
-            // Envoie l'ordre de màj mdp à Webflow (ancien_mdp|nouveau_mdp)
-            window.parent.postMessage('ms-update-pwd:' + oldPwd + '|' + newPwd, '*');
-        });
-    }
-
-    // Gestion locale des boutons "Toggles" de préférences
-    const toggles = ['notif-scan', 'notif-agent', 'notif-report'];
-    toggles.forEach(id => {
-        let el = document.getElementById(id);
-        if(el) {
-            // Charge la préférence sauvegardée (ou true par défaut pour scan/agent)
-            let savedPref = localStorage.getItem('deleak_' + id);
-            if(savedPref !== null) {
-                el.checked = savedPref === 'true';
-            }
-            
-            el.addEventListener('change', (e) => {
-                localStorage.setItem('deleak_' + id, e.target.checked);
-                showNotification("Préférences mises à jour.", "success");
-            });
         }
     });
 
@@ -1984,6 +1880,19 @@ document.addEventListener('DOMContentLoaded', () => {
             btnProfile.style.pointerEvents = 'none';
 
             window.parent.postMessage('ms-update-profile:' + newName, '*');
+            
+            // Simulation UX
+            setTimeout(() => {
+                showNotification("Profil mis à jour avec succès !", "success");
+                btnProfile.innerHTML = 'Enregistrer les modifications';
+                btnProfile.classList.remove('d-btn-disabled');
+                btnProfile.style.pointerEvents = 'auto';
+                if (document.getElementById('sidebar-user-name')) {
+                    document.getElementById('sidebar-user-name').innerText = newName;
+                    document.getElementById('sidebar-user-initial').innerText = newName.charAt(0).toUpperCase();
+                }
+                localStorage.setItem('deleak_clientName', newName);
+            }, 1500);
         });
     }
 
@@ -2003,6 +1912,16 @@ document.addEventListener('DOMContentLoaded', () => {
             btnPwd.style.pointerEvents = 'none';
 
             window.parent.postMessage('ms-update-pwd:' + oldPwd + '|' + newPwd, '*');
+            
+            // Simulation UX
+            setTimeout(() => {
+                showNotification("Mot de passe mis à jour avec succès !", "success");
+                btnPwd.innerHTML = 'Mettre à jour le mot de passe';
+                btnPwd.classList.remove('d-btn-disabled');
+                btnPwd.style.pointerEvents = 'auto';
+                document.getElementById('settings-old-pwd').value = '';
+                document.getElementById('settings-new-pwd').value = '';
+            }, 2000);
         });
     }
 
