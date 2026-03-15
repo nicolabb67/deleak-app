@@ -1020,63 +1020,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Actions des boutons Réglages
-    const btnProfile = document.getElementById('btn-update-profile');
-    if (btnProfile) {
-        btnProfile.addEventListener('click', () => {
-            const newName = document.getElementById('settings-name').value.trim();
-            if(newName.length < 2) {
-                showNotification("Veuillez entrer un nom valide.", "warning");
-                return;
-            }
-            
-            btnProfile.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
-            btnProfile.classList.add('d-btn-disabled');
-            btnProfile.style.pointerEvents = 'none';
-
-            // Envoie l'ordre de màj à Webflow
-            window.parent.postMessage('ms-update-profile:' + newName, '*');
-        });
-    }
-
-    const btnPwd = document.getElementById('btn-update-pwd');
-    if (btnPwd) {
-        btnPwd.addEventListener('click', () => {
-            const oldPwd = document.getElementById('settings-old-pwd').value;
-            const newPwd = document.getElementById('settings-new-pwd').value;
-            
-            if(oldPwd.length < 1 || newPwd.length < 8) {
-                showNotification("Le nouveau mot de passe doit faire au moins 8 caractères.", "warning");
-                return;
-            }
-
-            btnPwd.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vérification...';
-            btnPwd.classList.add('d-btn-disabled');
-            btnPwd.style.pointerEvents = 'none';
-
-            // Envoie l'ordre de màj mdp à Webflow (ancien_mdp|nouveau_mdp)
-            window.parent.postMessage('ms-update-pwd:' + oldPwd + '|' + newPwd, '*');
-        });
-    }
-
-    // Gestion locale des boutons "Toggles" de préférences
-    const toggles = ['notif-scan', 'notif-agent', 'notif-report'];
-    toggles.forEach(id => {
-        let el = document.getElementById(id);
-        if(el) {
-            // Charge la préférence sauvegardée (ou true par défaut pour scan/agent)
-            let savedPref = localStorage.getItem('deleak_' + id);
-            if(savedPref !== null) {
-                el.checked = savedPref === 'true';
-            }
-            
-            el.addEventListener('change', (e) => {
-                localStorage.setItem('deleak_' + id, e.target.checked);
-                showNotification("Préférences mises à jour.", "success");
-            });
-        }
-    });
-
     function safeStr(val) { return val ? String(val) : ""; }
 
     window.logUserAction = function(type, url, siteContext) {
@@ -1495,8 +1438,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (images.length > 0) {
             let gridHtml = '';
             images.forEach(img => {
-                // Création d'une image pure en colonne
-                gridHtml += `<img src="${img.url}" alt="Preuve de fuite" class="proof-pure-img">`;
+                gridHtml += `
+                <div class="proof-card">
+                    <img src="${img.url}" alt="Preuve de fuite" class="proof-pure-img">
+                </div>`;
             });
             container.innerHTML = gridHtml;
         } else {
@@ -1510,7 +1455,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('proof-modal').classList.remove('open');
     }
 
-    // Fermer la modal si on clique à l'extérieur
     document.getElementById('proof-modal').addEventListener('click', function(e) {
         if(e.target === this) {
             closeProofModal();
@@ -1578,7 +1522,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             });
                         } else { domHtml = "<span style='color:#6c757d; font-size:13px;'>Aucun détail fourni.</span>"; }
 
-                        // --- LIENS CLIQUABLES CONSERVÉS EXACTEMENT COMME AVANT ---
                         let linksHtml = "<ul style='padding-left:15px; margin:0;'>";
                         if(latestRecord.Liens) {
                             const linksArray = latestRecord.Liens.split(',');
@@ -1589,7 +1532,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else { linksHtml += "<li><span style='color:#6c757d; text-decoration:none;'>Aucun lien fourni.</span></li>"; }
                         linksHtml += "</ul>";
 
-                        // --- BOUTON DE PREUVES VISUELLES ---
                         let proofBtnHtml = "";
                         if(latestRecord.Preuves_Images && Array.isArray(latestRecord.Preuves_Images) && latestRecord.Preuves_Images.length > 0) {
                             window.proofImagesData[recordId] = latestRecord.Preuves_Images;
