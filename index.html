@@ -174,10 +174,6 @@
   .d-btn-secondary:hover { background: var(--primary-soft); color: var(--primary); } 
   .d-btn-disabled { opacity: 0.5; cursor: not-allowed; border-color: #ccc; color: #ccc; box-shadow: none !important; transform: none !important; } 
 
-  /* Bouton Preuves */
-  .d-btn-proof { background: transparent; color: #be123c; border: 1px solid #fecdd3; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 12px; transition: 0.2s; display: inline-block; margin-top: 15px; }
-  .d-btn-proof:hover { background: #ffe4e6; border-color: #f43f5e; }
-
   /* Boutons Action Review */ 
   .d-btn-approve { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; } 
   .d-btn-approve:hover:not(:disabled) { background: #059669; }
@@ -400,21 +396,22 @@
   }
   .proof-modal-close:hover { background: #e9ecef; color: var(--danger); }
   
-  /* GRID INTERNE DE LA MODAL (UNIQUEMENT LES IMAGES EN COLONNES) */
+  /* GRID INTERNE DE LA MODAL (UNIVQUEMENT LES IMAGES) */
   #proof-gallery-container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 20px;
       margin-top: 20px;
   }
-  .proof-pure-img {
-      width: 100%;
-      height: auto;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-      border: 1px solid #e9ecef;
-      object-fit: cover;
-      display: block;
+  .proof-card {
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 0; 
+      box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; 
   }
 </style> 
 </head> 
@@ -685,7 +682,7 @@
 
     <div id="view-billing" class="d-view d-hidden"> 
       <h1>Votre Abonnement</h1> 
-      <h2 style="margin-bottom: 30px;">Gérez votre forfait, étendez votre couverture et débloquez de nouvelles options.</h2> 
+      <h2 style="margin-bottom: 30px;">Gérez votre forfait, étendez couverture et débloquez de nouvelles options.</h2> 
       
       <div style="display:flex; justify-content:center; align-items:center; margin-bottom: 40px;">
           <span id="label-mensuel" style="font-weight:700; color:var(--primary); transition:0.3s; font-size:15px;">Mensuel</span>
@@ -819,7 +816,7 @@
                   </div>
                   <div>
                       <label class="d-label">Adresse E-mail</label> 
-                      <input type="email" id="settings-email" class="d-input" style="width:100%; padding: 12px 15px; background-color: #e9ecef; cursor: not-allowed;" readonly title="Pour modifier l'email, contactez le support"> 
+                      <input type="email" id="settings-email" class="d-input" style="width:100%; padding: 12px 15px; background-color: #e9ecef; cursor: not-allowed;" readonly title="Pour modifier votre email, veuillez nous contacter."> 
                   </div>
                   <button id="btn-update-profile" class="d-btn-primary" style="padding: 12px 25px; margin-top: 5px; align-self: flex-start; font-size: 14px;">Enregistrer les modifications</button> 
               </div> 
@@ -829,7 +826,7 @@
               <h3 style="margin-top:0; font-size:18px; border-bottom:1px solid var(--border-light); padding-bottom:15px; color:var(--text-dark);"><i class="fas fa-lock" style="color:var(--primary); margin-right:8px;"></i> Sécurité</h3> 
               <div class="d-input-group" style="flex-direction:column; gap:15px; margin-top:20px;"> 
                   <div>
-                      <label class="d-label">Mot de passe actuel</label> 
+                      <label class="d-label">Ancien mot de passe</label> 
                       <input type="password" id="settings-old-pwd" class="d-input" placeholder="••••••••" style="width:100%; padding: 12px 15px;"> 
                   </div>
                   <div>
@@ -898,50 +895,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalNotifications = 0;
     window.proofImagesData = window.proofImagesData || {}; 
 
-    // --- FONCTIONS MODAL PREUVES (AJOUTÉES ICI) ---
-    window.toggleAccordion = function(headerElement) {
-        const item = headerElement.parentElement;
-        const isActive = item.classList.contains('active');
-        
-        document.querySelectorAll('.scan-accordion-item').forEach(el => el.classList.remove('active'));
-        
-        if (!isActive) {
-            item.classList.add('active');
-        }
-    }
-
-    window.openProofModal = function(recordId) {
-        if(!recordId) return;
-        const images = window.proofImagesData[recordId] || [];
-        const container = document.getElementById('proof-gallery-container');
-        container.innerHTML = '';
-        
-        if (images.length > 0) {
-            let gridHtml = '';
-            images.forEach(img => {
-                gridHtml += `
-                <div class="proof-card" style="border:none; box-shadow:none; padding:0; background:transparent;">
-                    <img src="${img.url}" alt="Preuve de fuite" class="proof-pure-img">
-                </div>`;
-            });
-            container.innerHTML = gridHtml;
-        } else {
-            container.innerHTML = "<p style='color:var(--text-muted); font-size:14px;'>Aucune image trouvée.</p>";
-        }
-        
-        document.getElementById('proof-modal').classList.add('open');
-    }
-
-    window.closeProofModal = function() {
-        document.getElementById('proof-modal').classList.remove('open');
-    }
-
-    document.getElementById('proof-modal').addEventListener('click', function(e) {
-        if(e.target === this) {
-            closeProofModal();
-        }
-    });
-
     function updateMainMenuBadge() {
         const mainBadge = document.getElementById('badge-manual-main');
         if (totalNotifications > 0) {
@@ -1009,13 +962,118 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlPlan = new URLSearchParams(window.location.search).get('plan') || localStorage.getItem('deleak_plan') || '';
     setPlanLimits(urlPlan);
 
+    // ==========================================
+    // GESTION DES REGLAGES ET DE MEMBERSTACK
+    // ==========================================
     window.addEventListener('message', function(event) {
-        if (typeof event.data === 'string' && event.data.startsWith('ms-plan-active:')) {
+        if (typeof event.data !== 'string') return;
+        
+        if (event.data.startsWith('ms-plan-active:')) {
             let planId = event.data.split(':')[1];
             localStorage.setItem('deleak_plan', planId);
             setPlanLimits(planId);
         }
+        
+        // Retour de mise à jour du profil par Memberstack
+        if (event.data === 'ms-profile-updated') {
+            showNotification("Profil mis à jour avec succès !", "success");
+            let btn = document.getElementById('btn-update-profile');
+            if(btn) {
+                btn.innerHTML = "Enregistrer les modifications";
+                btn.classList.remove('d-btn-disabled');
+                btn.style.pointerEvents = 'auto';
+            }
+            // Met à jour le nom dans la sidebar si on l'a changé
+            let newName = document.getElementById('settings-name').value;
+            if(newName && document.getElementById('sidebar-user-name')) {
+                document.getElementById('sidebar-user-name').innerText = newName;
+                document.getElementById('sidebar-user-initial').innerText = newName.charAt(0).toUpperCase();
+                localStorage.setItem('deleak_clientName', newName);
+            }
+        }
+        
+        // Retour d'erreur de mise à jour de mot de passe par Memberstack
+        if (event.data === 'ms-pwd-error') {
+            showNotification("Erreur : l'ancien mot de passe est incorrect.", "error");
+            let btn = document.getElementById('btn-update-pwd');
+            if(btn) {
+                btn.innerHTML = "Mettre à jour le mot de passe";
+                btn.classList.remove('d-btn-disabled');
+                btn.style.pointerEvents = 'auto';
+            }
+        }
+
+        // Retour succès mot de passe
+        if (event.data === 'ms-pwd-success') {
+            showNotification("Mot de passe modifié avec succès !", "success");
+            let btn = document.getElementById('btn-update-pwd');
+            if(btn) {
+                btn.innerHTML = "Mettre à jour le mot de passe";
+                btn.classList.remove('d-btn-disabled');
+                btn.style.pointerEvents = 'auto';
+            }
+            document.getElementById('settings-old-pwd').value = '';
+            document.getElementById('settings-new-pwd').value = '';
+        }
     });
+
+    // Actions des boutons Réglages
+    const btnProfile = document.getElementById('btn-update-profile');
+    if (btnProfile) {
+        btnProfile.addEventListener('click', () => {
+            const newName = document.getElementById('settings-name').value.trim();
+            if(newName.length < 2) {
+                showNotification("Veuillez entrer un nom valide.", "warning");
+                return;
+            }
+            
+            btnProfile.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
+            btnProfile.classList.add('d-btn-disabled');
+            btnProfile.style.pointerEvents = 'none';
+
+            // Envoie l'ordre de màj à Webflow
+            window.parent.postMessage('ms-update-profile:' + newName, '*');
+        });
+    }
+
+    const btnPwd = document.getElementById('btn-update-pwd');
+    if (btnPwd) {
+        btnPwd.addEventListener('click', () => {
+            const oldPwd = document.getElementById('settings-old-pwd').value;
+            const newPwd = document.getElementById('settings-new-pwd').value;
+            
+            if(oldPwd.length < 1 || newPwd.length < 8) {
+                showNotification("Le nouveau mot de passe doit faire au moins 8 caractères.", "warning");
+                return;
+            }
+
+            btnPwd.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vérification...';
+            btnPwd.classList.add('d-btn-disabled');
+            btnPwd.style.pointerEvents = 'none';
+
+            // Envoie l'ordre de màj mdp à Webflow (ancien_mdp|nouveau_mdp)
+            window.parent.postMessage('ms-update-pwd:' + oldPwd + '|' + newPwd, '*');
+        });
+    }
+
+    // Gestion locale des boutons "Toggles" de préférences
+    const toggles = ['notif-scan', 'notif-agent', 'notif-report'];
+    toggles.forEach(id => {
+        let el = document.getElementById(id);
+        if(el) {
+            // Charge la préférence sauvegardée (ou true par défaut pour scan/agent)
+            let savedPref = localStorage.getItem('deleak_' + id);
+            if(savedPref !== null) {
+                el.checked = savedPref === 'true';
+            }
+            
+            el.addEventListener('change', (e) => {
+                localStorage.setItem('deleak_' + id, e.target.checked);
+                showNotification("Préférences mises à jour.", "success");
+            });
+        }
+    });
+
 
     function safeStr(val) { return val ? String(val) : ""; }
 
@@ -1044,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const EMAIL_PUBLIC_KEY = "moIJEBbO2F2sAEzGD"; 
     const EMAIL_SERVICE_ID = "service_cjqd13b"; 
     const EMAIL_TEMPLATE_ID = "template_cx3is9f"; 
-    if (typeof emailjs !== 'undefined') { emailjs.init(EMAIL_PUBLIC_KEY); }
+    emailjs.init(EMAIL_PUBLIC_KEY); 
 
     const AIRTABLE_PAT = "patWChXguNH2uTbYb.4bec15a47b62e02b192f76ab845348a2c24454b862051b8ec59f65d88c414b8e";  
     const AIRTABLE_BASE_ID = "appkrXd41icSQ9nhP";  
@@ -1055,21 +1113,18 @@ document.addEventListener('DOMContentLoaded', () => {
     let mainChart; 
     let globalChartRecords = []; 
     let scanHistory = JSON.parse(localStorage.getItem('delic_history')) || []; 
-    const ctxElement = document.getElementById('mainChart');
-    if (ctxElement) {
-        const ctx = ctxElement.getContext('2d'); 
-        const urlColors = ['#cb6ce6', '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']; 
+    const ctx = document.getElementById('mainChart').getContext('2d'); 
+    const urlColors = ['#cb6ce6', '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']; 
 
-        mainChart = new Chart(ctx, { 
-            type: 'line', 
-            data: { labels: [], datasets: [] }, 
-            options: {  
-                responsive: true, maintainAspectRatio: false,  
-                plugins: { legend: { display: true, position: 'top', align: 'end', labels: { boxWidth: 10, usePointStyle: true, font: {family:'Inter'} } } },  
-                scales: { x: { display: true, grid: { display: false }, ticks: { color: '#9ca3af', font: {family:'Inter'} } }, y: { display: true, grid: { color: '#f3f4f6' }, ticks: { color: '#9ca3af', font: {family:'Inter'}, beginAtZero: true } } }  
-            } 
-        });
-    }
+    mainChart = new Chart(ctx, { 
+        type: 'line', 
+        data: { labels: [], datasets: [] }, 
+        options: {  
+            responsive: true, maintainAspectRatio: false,  
+            plugins: { legend: { display: true, position: 'top', align: 'end', labels: { boxWidth: 10, usePointStyle: true, font: {family:'Inter'} } } },  
+            scales: { x: { display: true, grid: { display: false }, ticks: { color: '#9ca3af', font: {family:'Inter'} } }, y: { display: true, grid: { color: '#f3f4f6' }, ticks: { color: '#9ca3af', font: {family:'Inter'}, beginAtZero: true } } }  
+        } 
+    }); 
 
     function formatNumber(num) { 
         if (!num) return 0; 
@@ -1114,11 +1169,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } 
 
     function updateChartWithAirtable() {
-        if (!mainChart) return;
-        const filterEl = document.getElementById('chart-filter');
-        if (!filterEl) return;
-        
-        const filter = filterEl.value; 
+        const filter = document.getElementById('chart-filter').value; 
         const allLabels = getCalendarLabels(filter); 
         
         const groupedData = {};
@@ -1138,7 +1189,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const datasets = []; 
         let colorIndex = 0; 
-        const urlColors = ['#cb6ce6', '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
         
         if (Object.keys(groupedData).length === 0) { 
             datasets.push({ label: 'Aucune donnée', data: new Array(allLabels.length).fill(0), borderColor: '#e5e7eb', borderWidth: 2, pointRadius: 0, fill: false }); 
@@ -1158,18 +1208,16 @@ document.addEventListener('DOMContentLoaded', () => {
         mainChart.update();
     }
 
-    if (document.getElementById('chart-filter')) {
-        document.getElementById('chart-filter').addEventListener('change', updateChartWithAirtable);
-    }
+    document.getElementById('chart-filter').addEventListener('change', updateChartWithAirtable);
 
     function updateDashboardStats() { 
         if(globalChartRecords.length === 0) {
-            if(document.getElementById('ui-profiles-used')) document.getElementById('ui-profiles-used').innerText = 0;
+            document.getElementById('ui-profiles-used').innerText = 0;
             return;
         }
 
         globalUniqueProfiles = new Set(globalChartRecords.map(r => r.fields.Pseudos).filter(Boolean));
-        if(document.getElementById('ui-profiles-used')) document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
+        document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
 
         const totalUrls = globalUniqueProfiles.size; 
         let totalLeaks = 0; 
@@ -1193,14 +1241,14 @@ document.addEventListener('DOMContentLoaded', () => {
             totalRemoved += Math.floor(item.leaks * 0.90); 
         });
 
-        if(document.getElementById('dash-total-urls')) document.getElementById('dash-total-urls').innerText = totalUrls; 
-        if(document.getElementById('dash-total-leaks')) document.getElementById('dash-total-leaks').innerText = formatNumber(totalLeaks); 
-        if(document.getElementById('dash-removed-leaks')) document.getElementById('dash-removed-leaks').innerText = formatNumber(totalRemoved); 
+        document.getElementById('dash-total-urls').innerText = totalUrls; 
+        document.getElementById('dash-total-leaks').innerText = formatNumber(totalLeaks); 
+        document.getElementById('dash-removed-leaks').innerText = formatNumber(totalRemoved); 
     } 
 
     function updateDashboardStatsFallback() {
         const uniqueUrlSet = new Set(scanHistory.map(s => s.url)); 
-        if(document.getElementById('dash-total-urls')) document.getElementById('dash-total-urls').innerText = uniqueUrlSet.size; 
+        document.getElementById('dash-total-urls').innerText = uniqueUrlSet.size; 
     }
 
     const billingToggle = document.getElementById('toggle-billing-cycle');
@@ -1246,7 +1294,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function renderAgentTickets() { 
         const container = document.getElementById('ticket-list'); 
-        if(!container) return;
         container.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> Chargement des requêtes...</div>';
 
         try {
@@ -1271,7 +1318,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     totalNotifications += unreadAgentMessages;
                     updateMainMenuBadge();
                 } else {
-                    if(badgeAgent) badgeAgent.style.display = 'none';
+                    badgeAgent.style.display = 'none';
                 }
                 
                 if (data.records.length > 0) {
@@ -1339,7 +1386,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     totalNotifications += unreadEvalMessages;
                     updateMainMenuBadge();
                 } else {
-                    if(badgeReview) badgeReview.style.display = 'none';
+                    badgeReview.style.display = 'none';
                 }
 
                 container.innerHTML = ''; 
@@ -1397,7 +1444,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const emailData = { url_target: `ÉVALUATION | DÉCISION : ${decision} | URL : ${url} | CLIENT: ${clientEmail}`, to_email: "nicolopro170817@gmail.com" };
-        if (typeof emailjs !== 'undefined') { emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData); }
+        emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData); 
 
         const newStatus = decision.includes('GARDER') ? 'Validé' : 'À supprimer';
         fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_EVAL_TABLE}/${recordId}`, {
@@ -1425,6 +1472,50 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    window.toggleAccordion = function(headerElement) {
+        const item = headerElement.parentElement;
+        const isActive = item.classList.contains('active');
+        
+        document.querySelectorAll('.scan-accordion-item').forEach(el => el.classList.remove('active'));
+        
+        if (!isActive) {
+            item.classList.add('active');
+        }
+    }
+
+    // --- FONCTIONS MODAL PREUVES (JUSTE LES IMAGES) ---
+    window.openProofModal = function(recordId) {
+        if(!recordId) return;
+        const images = window.proofImagesData[recordId] || [];
+        const container = document.getElementById('proof-gallery-container');
+        container.innerHTML = '';
+        
+        if (images.length > 0) {
+            let gridHtml = '';
+            images.forEach(img => {
+                gridHtml += `
+                <div class="proof-card">
+                    <img src="${img.url}" alt="Preuve de fuite" style="width: 100%; height: 160px; object-fit: cover; display: block; border-radius: 8px; background: #000;">
+                </div>`;
+            });
+            container.innerHTML = gridHtml;
+        } else {
+            container.innerHTML = "<p style='color:var(--text-muted); font-size:14px;'>Aucune image trouvée.</p>";
+        }
+        
+        document.getElementById('proof-modal').classList.add('open');
+    }
+
+    window.closeProofModal = function() {
+        document.getElementById('proof-modal').classList.remove('open');
+    }
+
+    document.getElementById('proof-modal').addEventListener('click', function(e) {
+        if(e.target === this) {
+            closeProofModal();
+        }
+    });
+
     async function loadLatestScanInfo() {
         const statusBox = document.getElementById('track-status-box');
         const loadingMsg = document.getElementById('track-loading');
@@ -1447,7 +1538,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(!response.ok) throw new Error("Erreur de récupération");
 
             const data = await response.json();
-            if(loadingMsg) loadingMsg.style.display = 'none';
+            loadingMsg.style.display = 'none';
 
             if(data.records && data.records.length > 0) {
                 
@@ -1562,8 +1653,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } else { emptyMsg.style.display = 'block'; }
         } catch(err) {
-            if(loadingMsg) loadingMsg.style.display = 'none'; 
-            if(errorMsg) errorMsg.style.display = 'block';
+            loadingMsg.style.display = 'none'; errorMsg.style.display = 'block';
         }
     }
 
@@ -1586,30 +1676,28 @@ document.addEventListener('DOMContentLoaded', () => {
             window.logUserAction('manual_req', input.value.trim(), 'Équipe DeLeak');
 
             const emailData = { url_target: `DEMANDE MANUELLE | URL : ${input.value.trim()} | MESSAGE : ${message && message.value.trim() !== '' ? message.value.trim() : 'Aucun message'} | CLIENT : ${clientEmail}`, to_email: "nicolopro170817@gmail.com" }; 
-            
-            if(typeof emailjs !== 'undefined') {
-                emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => { 
-                    showNotification("Demande bien reçue ! Sarah a pris en charge le ticket.", "success");
-                    
-                    currentRequestsCount++;
-                    if(document.getElementById('ui-manuals-used')) document.getElementById('ui-manuals-used').innerText = currentRequestsCount;
 
-                    const container = document.getElementById('ticket-list');
-                    const tempEntry = `
-                    <div style="padding:15px 0; border-bottom:1px solid #f1f3f5; opacity: 0.7;"> 
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div><div style="font-weight:600; color:var(--text-dark);">${input.value.trim().substring(0,35)}...</div><div style="font-size:12px; color:var(--text-muted);">Soumission en cours...</div></div> 
-                            <div style="background:#fef3c7; color:#b45309; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700;">ENVOYÉ</div> 
-                        </div>
-                    </div>`;
-                    if(container && (container.innerHTML.includes("Aucune demande") || container.innerHTML.includes("Erreur"))) { container.innerHTML = tempEntry; } else if(container) { container.insertAdjacentHTML('afterbegin', tempEntry); }
-                    input.value = ""; if (message) message.value = "";  
-                    btn.innerText = "ENVOYER À L'ÉQUIPE"; btn.classList.remove('d-btn-disabled'); btn.style.pointerEvents = 'auto';
-                }).catch((err) => { 
-                    showNotification("Action enregistrée localement (Erreur réseau).", "warning");
-                    btn.innerText = "ENVOYER À L'ÉQUIPE"; btn.classList.remove('d-btn-disabled'); btn.style.pointerEvents = 'auto'; 
-                }); 
-            }
+            emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => { 
+                showNotification("Demande bien reçue ! Sarah a pris en charge le ticket.", "success");
+                
+                currentRequestsCount++;
+                if(document.getElementById('ui-manuals-used')) document.getElementById('ui-manuals-used').innerText = currentRequestsCount;
+
+                const container = document.getElementById('ticket-list');
+                const tempEntry = `
+                <div style="padding:15px 0; border-bottom:1px solid #f1f3f5; opacity: 0.7;"> 
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div><div style="font-weight:600; color:var(--text-dark);">${input.value.trim().substring(0,35)}...</div><div style="font-size:12px; color:var(--text-muted);">Soumission en cours...</div></div> 
+                        <div style="background:#fef3c7; color:#b45309; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700;">ENVOYÉ</div> 
+                    </div>
+                </div>`;
+                if(container && (container.innerHTML.includes("Aucune demande") || container.innerHTML.includes("Erreur"))) { container.innerHTML = tempEntry; } else if(container) { container.insertAdjacentHTML('afterbegin', tempEntry); }
+                input.value = ""; if (message) message.value = "";  
+                btn.innerText = "ENVOYER À L'ÉQUIPE"; btn.classList.remove('d-btn-disabled'); btn.style.pointerEvents = 'auto';
+            }).catch((err) => { 
+                showNotification("Action enregistrée localement (Erreur réseau).", "warning");
+                btn.innerText = "ENVOYER À L'ÉQUIPE"; btn.classList.remove('d-btn-disabled'); btn.style.pointerEvents = 'auto'; 
+            }); 
         } else { showNotification("Veuillez entrer une URL valide.", "error"); } 
     }; 
 
@@ -1648,8 +1736,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } 
         }); 
 
-        let userActions = [];
-        try { userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || []; } catch(e){}
+        let userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
         userActions.forEach(action => { if (selectedUrl !== 'all' && !action.url.includes(selectedUrl)) return; allActions.push(action); });
 
         allActions.sort((a, b) => b.time - a.time); const displayActions = allActions.slice(0, 8); 
@@ -1696,8 +1783,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const totalScansMonth = historyForMonth.length; const totalLeaksMonth = historyForMonth.reduce((acc, curr) => acc + parseInt(curr.leaks || 0), 0); 
              
             const manualsMonth = (window.globalAgentRecords || []).filter(r => { const dateObj = new Date(r.fields.Date ? r.fields.Date : r.createdTime); return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === monthName.toLowerCase() && dateObj.getFullYear().toString() === year.toString(); }).length;
-            let userActions = [];
-            try { userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || []; } catch(e){}
+            const userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
             const evalsMonth = userActions.filter(a => { if(a.type !== 'eval_decision') return false; const dateObj = new Date(a.time); return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === monthName.toLowerCase() && dateObj.getFullYear().toString() === year.toString(); }).length;
 
             const hasData = (totalScansMonth + manualsMonth + evalsMonth) > 0; 
@@ -1726,8 +1812,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!manualDetails) manualDetails = "Aucune demande manuelle ce mois-ci.";
 
         let evalDetails = "";
-        let userActions = [];
-        try { userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || []; } catch(e){}
+        const userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
         const evalsMonth = userActions.filter(a => { if(a.type !== 'eval_decision') return false; const dateObj = new Date(a.time); return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === month.toLowerCase() && dateObj.getFullYear().toString() === year.toString(); });
         evalDetails = evalsMonth.map(a => { const d = new Date(a.time).toLocaleDateString('fr-FR'); const url = a.url || "N/A"; const decision = a.site || "N/A"; return `- Date: ${d}\n  Lien: ${url}\n  Décision choisie: ${decision}`; }).join('\n\n');
         if(!evalDetails) evalDetails = "Aucune évaluation traitée ce mois-ci.";
@@ -1837,22 +1922,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const emailData = { url_target: `MISE À JOUR RÉSEAUX SOCIAUX | CLIENT : ${clientEmail}\n\nInstagram: ${ig || 'Non renseigné'}\nTikTok: ${tk || 'Non renseigné'}\nSnapchat: ${sc || 'Non renseigné'}\nYouTube: ${yt || 'Non renseigné'}`, to_email: "nicolopro170817@gmail.com" };
 
-            if(typeof emailjs !== 'undefined') {
-                emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => {
-                    showNotification("Réseaux enregistrés avec succès !", "success");
-                    submitSocialsBtn.innerText = "RÉSEAUX ENREGISTRÉS ✓";
-                    
-                    requestedSocials.forEach(p => globalUniqueProfiles.add(p));
-                    if(document.getElementById('ui-profiles-used')) {
-                        document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
-                    }
+            emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => {
+                showNotification("Réseaux enregistrés avec succès !", "success");
+                submitSocialsBtn.innerText = "RÉSEAUX ENREGISTRÉS ✓";
+                
+                requestedSocials.forEach(p => globalUniqueProfiles.add(p));
+                if(document.getElementById('ui-profiles-used')) {
+                    document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
+                }
 
-                    setTimeout(() => { submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX"; submitSocialsBtn.classList.remove('d-btn-disabled'); submitSocialsBtn.style.pointerEvents = 'auto'; }, 3000);
-                }).catch((err) => {
-                    showNotification("Erreur lors de l'enregistrement.", "error");
-                    submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX"; submitSocialsBtn.classList.remove('d-btn-disabled'); submitSocialsBtn.style.pointerEvents = 'auto';
-                });
-            }
+                setTimeout(() => { submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX"; submitSocialsBtn.classList.remove('d-btn-disabled'); submitSocialsBtn.style.pointerEvents = 'auto'; }, 3000);
+            }).catch((err) => {
+                showNotification("Erreur lors de l'enregistrement.", "error");
+                submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX"; submitSocialsBtn.classList.remove('d-btn-disabled'); submitSocialsBtn.style.pointerEvents = 'auto';
+            });
         }
         
         const startScanBtn = e.target.closest('#btn-start-scan');
@@ -1873,20 +1956,17 @@ document.addEventListener('DOMContentLoaded', () => {
             startScanBtn.innerText = "LANCEMENT..."; startScanBtn.classList.add('d-btn-disabled'); startScanBtn.style.pointerEvents = 'none'; 
             const emailData = { url_target: `NOUVELLE ANALYSE DEMANDÉE | PSEUDOS : ${pseudoValue} | CLIENT : ${clientEmail}`, to_email: "nicolopro170817@gmail.com" }; 
 
-            if(typeof emailjs !== 'undefined') {
-                emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => { 
-                    startScanBtn.innerText = "LANCER L'ANALYSE"; startScanBtn.classList.remove('d-btn-disabled'); startScanBtn.style.pointerEvents = 'auto'; 
-                    input.value = ""; resultBox.classList.remove('d-hidden'); resultBox.classList.add('d-visible'); 
-                    requestedProfiles.forEach(p => globalUniqueProfiles.add(p)); document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
-                }).catch((err) => { 
-                    showNotification("Erreur de connexion.", "error");
-                    startScanBtn.innerText = "LANCER L'ANALYSE"; startScanBtn.classList.remove('d-btn-disabled'); startScanBtn.style.pointerEvents = 'auto'; 
-                }); 
-            }
+            emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => { 
+                startScanBtn.innerText = "LANCER L'ANALYSE"; startScanBtn.classList.remove('d-btn-disabled'); startScanBtn.style.pointerEvents = 'auto'; 
+                input.value = ""; resultBox.classList.remove('d-hidden'); resultBox.classList.add('d-visible'); 
+                requestedProfiles.forEach(p => globalUniqueProfiles.add(p)); document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
+            }).catch((err) => { 
+                showNotification("Erreur de connexion.", "error");
+                startScanBtn.innerText = "LANCER L'ANALYSE"; startScanBtn.classList.remove('d-btn-disabled'); startScanBtn.style.pointerEvents = 'auto'; 
+            }); 
         }
     }); 
 
-    // --- LOGIQUE BOUTONS REGLAGES ---
     const btnProfile = document.getElementById('btn-update-profile');
     if (btnProfile) {
         btnProfile.addEventListener('click', () => {
@@ -1901,19 +1981,6 @@ document.addEventListener('DOMContentLoaded', () => {
             btnProfile.style.pointerEvents = 'none';
 
             window.parent.postMessage('ms-update-profile:' + newName, '*');
-            
-            // Simulation UX
-            setTimeout(() => {
-                showNotification("Profil mis à jour avec succès !", "success");
-                btnProfile.innerHTML = 'Enregistrer les modifications';
-                btnProfile.classList.remove('d-btn-disabled');
-                btnProfile.style.pointerEvents = 'auto';
-                if (document.getElementById('sidebar-user-name')) {
-                    document.getElementById('sidebar-user-name').innerText = newName;
-                    document.getElementById('sidebar-user-initial').innerText = newName.charAt(0).toUpperCase();
-                }
-                localStorage.setItem('deleak_clientName', newName);
-            }, 1500);
         });
     }
 
@@ -1933,16 +2000,6 @@ document.addEventListener('DOMContentLoaded', () => {
             btnPwd.style.pointerEvents = 'none';
 
             window.parent.postMessage('ms-update-pwd:' + oldPwd + '|' + newPwd, '*');
-            
-            // Simulation UX
-            setTimeout(() => {
-                showNotification("Mot de passe mis à jour avec succès !", "success");
-                btnPwd.innerHTML = 'Mettre à jour le mot de passe';
-                btnPwd.classList.remove('d-btn-disabled');
-                btnPwd.style.pointerEvents = 'auto';
-                document.getElementById('settings-old-pwd').value = '';
-                document.getElementById('settings-new-pwd').value = '';
-            }, 2000);
         });
     }
 
