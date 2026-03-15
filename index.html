@@ -898,18 +898,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalNotifications = 0;
     window.proofImagesData = window.proofImagesData || {}; 
 
-    // --- FONCTIONS MODAL PREUVES (AJOUTÉES ICI) ---
-    window.toggleAccordion = function(headerElement) {
-        const item = headerElement.parentElement;
-        const isActive = item.classList.contains('active');
-        
-        document.querySelectorAll('.scan-accordion-item').forEach(el => el.classList.remove('active'));
-        
-        if (!isActive) {
-            item.classList.add('active');
-        }
-    }
-
+    // --- FONCTIONS MODAL PREUVES ---
     window.openProofModal = function(recordId) {
         if(!recordId) return;
         const images = window.proofImagesData[recordId] || [];
@@ -941,6 +930,17 @@ document.addEventListener('DOMContentLoaded', () => {
             closeProofModal();
         }
     });
+
+    window.toggleAccordion = function(headerElement) {
+        const item = headerElement.parentElement;
+        const isActive = item.classList.contains('active');
+        
+        document.querySelectorAll('.scan-accordion-item').forEach(el => el.classList.remove('active'));
+        
+        if (!isActive) {
+            item.classList.add('active');
+        }
+    }
 
     function updateMainMenuBadge() {
         const mainBadge = document.getElementById('badge-manual-main');
@@ -1010,7 +1010,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setPlanLimits(urlPlan);
 
     window.addEventListener('message', function(event) {
-        if (typeof event.data === 'string' && event.data.startsWith('ms-plan-active:')) {
+        if (typeof event.data !== 'string') return;
+        
+        if (event.data.startsWith('ms-plan-active:')) {
             let planId = event.data.split(':')[1];
             localStorage.setItem('deleak_plan', planId);
             setPlanLimits(planId);
@@ -1020,7 +1022,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function safeStr(val) { return val ? String(val) : ""; }
 
     window.logUserAction = function(type, url, siteContext) {
-        let userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
+        let userActions = [];
+        try { userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || []; } catch(e){}
         userActions.push({ type: type, url: url, site: siteContext, time: Date.now() });
         if(userActions.length > 20) userActions = userActions.slice(-20);
         localStorage.setItem('delic_user_actions', JSON.stringify(userActions));
@@ -1044,7 +1047,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const EMAIL_PUBLIC_KEY = "moIJEBbO2F2sAEzGD"; 
     const EMAIL_SERVICE_ID = "service_cjqd13b"; 
     const EMAIL_TEMPLATE_ID = "template_cx3is9f"; 
-    emailjs.init(EMAIL_PUBLIC_KEY); 
+    if(typeof emailjs !== 'undefined') { emailjs.init(EMAIL_PUBLIC_KEY); }
 
     const AIRTABLE_PAT = "patWChXguNH2uTbYb.4bec15a47b62e02b192f76ab845348a2c24454b862051b8ec59f65d88c414b8e";  
     const AIRTABLE_BASE_ID = "appkrXd41icSQ9nhP";  
@@ -1054,19 +1057,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let mainChart; 
     let globalChartRecords = []; 
-    let scanHistory = JSON.parse(localStorage.getItem('delic_history')) || []; 
-    const ctx = document.getElementById('mainChart').getContext('2d'); 
-    const urlColors = ['#cb6ce6', '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']; 
+    let scanHistory = [];
+    try { scanHistory = JSON.parse(localStorage.getItem('delic_history')) || []; } catch(e){}
+    
+    const chartCtxEl = document.getElementById('mainChart');
+    if (chartCtxEl) {
+        const ctx = chartCtxEl.getContext('2d'); 
+        const urlColors = ['#cb6ce6', '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']; 
 
-    mainChart = new Chart(ctx, { 
-        type: 'line', 
-        data: { labels: [], datasets: [] }, 
-        options: {  
-            responsive: true, maintainAspectRatio: false,  
-            plugins: { legend: { display: true, position: 'top', align: 'end', labels: { boxWidth: 10, usePointStyle: true, font: {family:'Inter'} } } },  
-            scales: { x: { display: true, grid: { display: false }, ticks: { color: '#9ca3af', font: {family:'Inter'} } }, y: { display: true, grid: { color: '#f3f4f6' }, ticks: { color: '#9ca3af', font: {family:'Inter'}, beginAtZero: true } } }  
-        } 
-    }); 
+        if(typeof Chart !== 'undefined') {
+            mainChart = new Chart(ctx, { 
+                type: 'line', 
+                data: { labels: [], datasets: [] }, 
+                options: {  
+                    responsive: true, maintainAspectRatio: false,  
+                    plugins: { legend: { display: true, position: 'top', align: 'end', labels: { boxWidth: 10, usePointStyle: true, font: {family:'Inter'} } } },  
+                    scales: { x: { display: true, grid: { display: false }, ticks: { color: '#9ca3af', font: {family:'Inter'} } }, y: { display: true, grid: { color: '#f3f4f6' }, ticks: { color: '#9ca3af', font: {family:'Inter'}, beginAtZero: true } } }  
+                } 
+            }); 
+        }
+    }
 
     function formatNumber(num) { 
         if (!num) return 0; 
@@ -1111,7 +1121,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } 
 
     function updateChartWithAirtable() {
-        const filter = document.getElementById('chart-filter').value; 
+        if(!mainChart) return;
+        const filterEl = document.getElementById('chart-filter');
+        if(!filterEl) return;
+        const filter = filterEl.value; 
         const allLabels = getCalendarLabels(filter); 
         
         const groupedData = {};
@@ -1131,6 +1144,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const datasets = []; 
         let colorIndex = 0; 
+        const urlColors = ['#cb6ce6', '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
         
         if (Object.keys(groupedData).length === 0) { 
             datasets.push({ label: 'Aucune donnée', data: new Array(allLabels.length).fill(0), borderColor: '#e5e7eb', borderWidth: 2, pointRadius: 0, fill: false }); 
@@ -1150,16 +1164,18 @@ document.addEventListener('DOMContentLoaded', () => {
         mainChart.update();
     }
 
-    document.getElementById('chart-filter').addEventListener('change', updateChartWithAirtable);
+    if(document.getElementById('chart-filter')) {
+        document.getElementById('chart-filter').addEventListener('change', updateChartWithAirtable);
+    }
 
     function updateDashboardStats() { 
         if(globalChartRecords.length === 0) {
-            document.getElementById('ui-profiles-used').innerText = 0;
+            if(document.getElementById('ui-profiles-used')) document.getElementById('ui-profiles-used').innerText = 0;
             return;
         }
 
         globalUniqueProfiles = new Set(globalChartRecords.map(r => r.fields.Pseudos).filter(Boolean));
-        document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
+        if(document.getElementById('ui-profiles-used')) document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
 
         const totalUrls = globalUniqueProfiles.size; 
         let totalLeaks = 0; 
@@ -1183,14 +1199,14 @@ document.addEventListener('DOMContentLoaded', () => {
             totalRemoved += Math.floor(item.leaks * 0.90); 
         });
 
-        document.getElementById('dash-total-urls').innerText = totalUrls; 
-        document.getElementById('dash-total-leaks').innerText = formatNumber(totalLeaks); 
-        document.getElementById('dash-removed-leaks').innerText = formatNumber(totalRemoved); 
+        if(document.getElementById('dash-total-urls')) document.getElementById('dash-total-urls').innerText = totalUrls; 
+        if(document.getElementById('dash-total-leaks')) document.getElementById('dash-total-leaks').innerText = formatNumber(totalLeaks); 
+        if(document.getElementById('dash-removed-leaks')) document.getElementById('dash-removed-leaks').innerText = formatNumber(totalRemoved); 
     } 
 
     function updateDashboardStatsFallback() {
         const uniqueUrlSet = new Set(scanHistory.map(s => s.url)); 
-        document.getElementById('dash-total-urls').innerText = uniqueUrlSet.size; 
+        if(document.getElementById('dash-total-urls')) document.getElementById('dash-total-urls').innerText = uniqueUrlSet.size; 
     }
 
     const billingToggle = document.getElementById('toggle-billing-cycle');
@@ -1236,6 +1252,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function renderAgentTickets() { 
         const container = document.getElementById('ticket-list'); 
+        if(!container) return;
         container.innerHTML = '<div style="padding:15px; text-align:center; color:var(--text-muted);"><i class="fas fa-spinner fa-spin"></i> Chargement des requêtes...</div>';
 
         try {
@@ -1255,12 +1272,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const unreadAgentMessages = data.records.filter(r => r.fields.Compte_Rendu && (r.fields.Status === 'Résolu' || r.fields.Status === 'Rejeté')).length;
                 const badgeAgent = document.getElementById('badge-agent');
                 if (unreadAgentMessages > 0) {
-                    badgeAgent.innerText = unreadAgentMessages;
-                    badgeAgent.style.display = 'inline-block';
+                    if(badgeAgent) badgeAgent.innerText = unreadAgentMessages;
+                    if(badgeAgent) badgeAgent.style.display = 'inline-block';
                     totalNotifications += unreadAgentMessages;
                     updateMainMenuBadge();
                 } else {
-                    badgeAgent.style.display = 'none';
+                    if(badgeAgent) badgeAgent.style.display = 'none';
                 }
                 
                 if (data.records.length > 0) {
@@ -1323,12 +1340,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const unreadEvalMessages = data.records.length;
                 const badgeReview = document.getElementById('badge-review');
                 if (unreadEvalMessages > 0) {
-                    badgeReview.innerText = unreadEvalMessages;
-                    badgeReview.style.display = 'inline-block';
+                    if(badgeReview) badgeReview.innerText = unreadEvalMessages;
+                    if(badgeReview) badgeReview.style.display = 'inline-block';
                     totalNotifications += unreadEvalMessages;
                     updateMainMenuBadge();
                 } else {
-                    badgeReview.style.display = 'none';
+                    if(badgeReview) badgeReview.style.display = 'none';
                 }
 
                 container.innerHTML = ''; 
@@ -1386,7 +1403,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const emailData = { url_target: `ÉVALUATION | DÉCISION : ${decision} | URL : ${url} | CLIENT: ${clientEmail}`, to_email: "nicolopro170817@gmail.com" };
-        emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData); 
+        if(typeof emailjs !== 'undefined') { emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData); }
 
         const newStatus = decision.includes('GARDER') ? 'Validé' : 'À supprimer';
         fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_EVAL_TABLE}/${recordId}`, {
@@ -1475,6 +1492,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             });
                         } else { domHtml = "<span style='color:#6c757d; font-size:13px;'>Aucun détail fourni.</span>"; }
 
+                        // --- LIENS CLIQUABLES CONSERVÉS EXACTEMENT COMME AVANT ---
                         let linksHtml = "<ul style='padding-left:15px; margin:0;'>";
                         if(latestRecord.Liens) {
                             const linksArray = latestRecord.Liens.split(',');
@@ -1485,6 +1503,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else { linksHtml += "<li><span style='color:#6c757d; text-decoration:none;'>Aucun lien fourni.</span></li>"; }
                         linksHtml += "</ul>";
 
+                        // --- BOUTON DE PREUVES VISUELLES ---
                         let proofBtnHtml = "";
                         if(latestRecord.Preuves_Images && Array.isArray(latestRecord.Preuves_Images) && latestRecord.Preuves_Images.length > 0) {
                             window.proofImagesData[recordId] = latestRecord.Preuves_Images;
@@ -1551,7 +1570,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } else { emptyMsg.style.display = 'block'; }
         } catch(err) {
-            loadingMsg.style.display = 'none'; errorMsg.style.display = 'block';
+            if(loadingMsg) loadingMsg.style.display = 'none'; 
+            if(errorMsg) errorMsg.style.display = 'block';
         }
     }
 
@@ -1574,28 +1594,30 @@ document.addEventListener('DOMContentLoaded', () => {
             window.logUserAction('manual_req', input.value.trim(), 'Équipe DeLeak');
 
             const emailData = { url_target: `DEMANDE MANUELLE | URL : ${input.value.trim()} | MESSAGE : ${message && message.value.trim() !== '' ? message.value.trim() : 'Aucun message'} | CLIENT : ${clientEmail}`, to_email: "nicolopro170817@gmail.com" }; 
+            
+            if(typeof emailjs !== 'undefined') {
+                emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => { 
+                    showNotification("Demande bien reçue ! Sarah a pris en charge le ticket.", "success");
+                    
+                    currentRequestsCount++;
+                    if(document.getElementById('ui-manuals-used')) document.getElementById('ui-manuals-used').innerText = currentRequestsCount;
 
-            emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => { 
-                showNotification("Demande bien reçue ! Sarah a pris en charge le ticket.", "success");
-                
-                currentRequestsCount++;
-                if(document.getElementById('ui-manuals-used')) document.getElementById('ui-manuals-used').innerText = currentRequestsCount;
-
-                const container = document.getElementById('ticket-list');
-                const tempEntry = `
-                <div style="padding:15px 0; border-bottom:1px solid #f1f3f5; opacity: 0.7;"> 
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div><div style="font-weight:600; color:var(--text-dark);">${input.value.trim().substring(0,35)}...</div><div style="font-size:12px; color:var(--text-muted);">Soumission en cours...</div></div> 
-                        <div style="background:#fef3c7; color:#b45309; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700;">ENVOYÉ</div> 
-                    </div>
-                </div>`;
-                if(container && (container.innerHTML.includes("Aucune demande") || container.innerHTML.includes("Erreur"))) { container.innerHTML = tempEntry; } else if(container) { container.insertAdjacentHTML('afterbegin', tempEntry); }
-                input.value = ""; if (message) message.value = "";  
-                btn.innerText = "ENVOYER À L'ÉQUIPE"; btn.classList.remove('d-btn-disabled'); btn.style.pointerEvents = 'auto';
-            }).catch((err) => { 
-                showNotification("Action enregistrée localement (Erreur réseau).", "warning");
-                btn.innerText = "ENVOYER À L'ÉQUIPE"; btn.classList.remove('d-btn-disabled'); btn.style.pointerEvents = 'auto'; 
-            }); 
+                    const container = document.getElementById('ticket-list');
+                    const tempEntry = `
+                    <div style="padding:15px 0; border-bottom:1px solid #f1f3f5; opacity: 0.7;"> 
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div><div style="font-weight:600; color:var(--text-dark);">${input.value.trim().substring(0,35)}...</div><div style="font-size:12px; color:var(--text-muted);">Soumission en cours...</div></div> 
+                            <div style="background:#fef3c7; color:#b45309; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700;">ENVOYÉ</div> 
+                        </div>
+                    </div>`;
+                    if(container && (container.innerHTML.includes("Aucune demande") || container.innerHTML.includes("Erreur"))) { container.innerHTML = tempEntry; } else if(container) { container.insertAdjacentHTML('afterbegin', tempEntry); }
+                    input.value = ""; if (message) message.value = "";  
+                    btn.innerText = "ENVOYER À L'ÉQUIPE"; btn.classList.remove('d-btn-disabled'); btn.style.pointerEvents = 'auto';
+                }).catch((err) => { 
+                    showNotification("Action enregistrée localement (Erreur réseau).", "warning");
+                    btn.innerText = "ENVOYER À L'ÉQUIPE"; btn.classList.remove('d-btn-disabled'); btn.style.pointerEvents = 'auto'; 
+                }); 
+            }
         } else { showNotification("Veuillez entrer une URL valide.", "error"); } 
     }; 
 
@@ -1634,7 +1656,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } 
         }); 
 
-        let userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
+        let userActions = [];
+        try { userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || []; } catch(e){}
         userActions.forEach(action => { if (selectedUrl !== 'all' && !action.url.includes(selectedUrl)) return; allActions.push(action); });
 
         allActions.sort((a, b) => b.time - a.time); const displayActions = allActions.slice(0, 8); 
@@ -1681,7 +1704,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const totalScansMonth = historyForMonth.length; const totalLeaksMonth = historyForMonth.reduce((acc, curr) => acc + parseInt(curr.leaks || 0), 0); 
              
             const manualsMonth = (window.globalAgentRecords || []).filter(r => { const dateObj = new Date(r.fields.Date ? r.fields.Date : r.createdTime); return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === monthName.toLowerCase() && dateObj.getFullYear().toString() === year.toString(); }).length;
-            const userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
+            let userActions = [];
+            try { userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || []; } catch(e){}
             const evalsMonth = userActions.filter(a => { if(a.type !== 'eval_decision') return false; const dateObj = new Date(a.time); return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === monthName.toLowerCase() && dateObj.getFullYear().toString() === year.toString(); }).length;
 
             const hasData = (totalScansMonth + manualsMonth + evalsMonth) > 0; 
@@ -1710,7 +1734,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!manualDetails) manualDetails = "Aucune demande manuelle ce mois-ci.";
 
         let evalDetails = "";
-        const userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || [];
+        let userActions = [];
+        try { userActions = JSON.parse(localStorage.getItem('delic_user_actions')) || []; } catch(e){}
         const evalsMonth = userActions.filter(a => { if(a.type !== 'eval_decision') return false; const dateObj = new Date(a.time); return dateObj.toLocaleDateString('fr-FR', { month: 'long' }).toLowerCase() === month.toLowerCase() && dateObj.getFullYear().toString() === year.toString(); });
         evalDetails = evalsMonth.map(a => { const d = new Date(a.time).toLocaleDateString('fr-FR'); const url = a.url || "N/A"; const decision = a.site || "N/A"; return `- Date: ${d}\n  Lien: ${url}\n  Décision choisie: ${decision}`; }).join('\n\n');
         if(!evalDetails) evalDetails = "Aucune évaluation traitée ce mois-ci.";
@@ -1820,20 +1845,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const emailData = { url_target: `MISE À JOUR RÉSEAUX SOCIAUX | CLIENT : ${clientEmail}\n\nInstagram: ${ig || 'Non renseigné'}\nTikTok: ${tk || 'Non renseigné'}\nSnapchat: ${sc || 'Non renseigné'}\nYouTube: ${yt || 'Non renseigné'}`, to_email: "nicolopro170817@gmail.com" };
 
-            emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => {
-                showNotification("Réseaux enregistrés avec succès !", "success");
-                submitSocialsBtn.innerText = "RÉSEAUX ENREGISTRÉS ✓";
-                
-                requestedSocials.forEach(p => globalUniqueProfiles.add(p));
-                if(document.getElementById('ui-profiles-used')) {
-                    document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
-                }
+            if(typeof emailjs !== 'undefined') {
+                emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => {
+                    showNotification("Réseaux enregistrés avec succès !", "success");
+                    submitSocialsBtn.innerText = "RÉSEAUX ENREGISTRÉS ✓";
+                    
+                    requestedSocials.forEach(p => globalUniqueProfiles.add(p));
+                    if(document.getElementById('ui-profiles-used')) {
+                        document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
+                    }
 
-                setTimeout(() => { submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX"; submitSocialsBtn.classList.remove('d-btn-disabled'); submitSocialsBtn.style.pointerEvents = 'auto'; }, 3000);
-            }).catch((err) => {
-                showNotification("Erreur lors de l'enregistrement.", "error");
-                submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX"; submitSocialsBtn.classList.remove('d-btn-disabled'); submitSocialsBtn.style.pointerEvents = 'auto';
-            });
+                    setTimeout(() => { submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX"; submitSocialsBtn.classList.remove('d-btn-disabled'); submitSocialsBtn.style.pointerEvents = 'auto'; }, 3000);
+                }).catch((err) => {
+                    showNotification("Erreur lors de l'enregistrement.", "error");
+                    submitSocialsBtn.innerText = "ENREGISTRER MES RÉSEAUX"; submitSocialsBtn.classList.remove('d-btn-disabled'); submitSocialsBtn.style.pointerEvents = 'auto';
+                });
+            }
         }
         
         const startScanBtn = e.target.closest('#btn-start-scan');
@@ -1854,14 +1881,16 @@ document.addEventListener('DOMContentLoaded', () => {
             startScanBtn.innerText = "LANCEMENT..."; startScanBtn.classList.add('d-btn-disabled'); startScanBtn.style.pointerEvents = 'none'; 
             const emailData = { url_target: `NOUVELLE ANALYSE DEMANDÉE | PSEUDOS : ${pseudoValue} | CLIENT : ${clientEmail}`, to_email: "nicolopro170817@gmail.com" }; 
 
-            emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => { 
-                startScanBtn.innerText = "LANCER L'ANALYSE"; startScanBtn.classList.remove('d-btn-disabled'); startScanBtn.style.pointerEvents = 'auto'; 
-                input.value = ""; resultBox.classList.remove('d-hidden'); resultBox.classList.add('d-visible'); 
-                requestedProfiles.forEach(p => globalUniqueProfiles.add(p)); document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
-            }).catch((err) => { 
-                showNotification("Erreur de connexion.", "error");
-                startScanBtn.innerText = "LANCER L'ANALYSE"; startScanBtn.classList.remove('d-btn-disabled'); startScanBtn.style.pointerEvents = 'auto'; 
-            }); 
+            if(typeof emailjs !== 'undefined') {
+                emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, emailData).then(() => { 
+                    startScanBtn.innerText = "LANCER L'ANALYSE"; startScanBtn.classList.remove('d-btn-disabled'); startScanBtn.style.pointerEvents = 'auto'; 
+                    input.value = ""; resultBox.classList.remove('d-hidden'); resultBox.classList.add('d-visible'); 
+                    requestedProfiles.forEach(p => globalUniqueProfiles.add(p)); document.getElementById('ui-profiles-used').innerText = globalUniqueProfiles.size;
+                }).catch((err) => { 
+                    showNotification("Erreur de connexion.", "error");
+                    startScanBtn.innerText = "LANCER L'ANALYSE"; startScanBtn.classList.remove('d-btn-disabled'); startScanBtn.style.pointerEvents = 'auto'; 
+                }); 
+            }
         }
     }); 
 
