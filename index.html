@@ -129,7 +129,7 @@
       padding: 2px 6px;
       border-radius: 10px;
       animation: popIn 0.3s ease;
-      display: none; /* Caché par défaut */
+      display: none;
   }
   .sub-badge {
       right: 10px;
@@ -173,10 +173,6 @@
   .d-btn-secondary { background: transparent; color: var(--primary); border: 2px solid var(--primary); padding: 12px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: 0.2s; width: 100%; margin-top: 15px; } 
   .d-btn-secondary:hover { background: var(--primary-soft); color: var(--primary); } 
   .d-btn-disabled { opacity: 0.5; cursor: not-allowed; border-color: #ccc; color: #ccc; box-shadow: none !important; transform: none !important; } 
-
-  /* Bouton Preuves */
-  .d-btn-proof { background: transparent; color: #be123c; border: 1px solid #fecdd3; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 12px; transition: 0.2s; display: inline-block; margin-top: 15px; }
-  .d-btn-proof:hover { background: #ffe4e6; border-color: #f43f5e; }
 
   /* Boutons Action Review */ 
   .d-btn-approve { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; } 
@@ -341,7 +337,7 @@
   }
   .scan-accordion-content {
       padding: 24px;
-      display: none; /* Caché par défaut */
+      display: none; 
       border-top: 1px solid var(--border-light);
   }
   .scan-accordion-item.active .scan-accordion-content {
@@ -352,73 +348,47 @@
       transform: rotate(180deg);
   }
 
-  /* --- GALERIE PREUVES (MODAL) --- */
-  .proof-modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      z-index: 9999999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: 0.3s;
-      backdrop-filter: blur(5px);
+  /* --- GRILLE DE PREUVES (REMPLACE LES LIENS) --- */
+  .proofs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 15px;
+      margin-top: 10px;
   }
-  .proof-modal-overlay.open {
-      opacity: 1;
-      pointer-events: auto;
-  }
-  .proof-modal-content {
+  .proof-card {
       background: #fff;
-      border-radius: 16px;
-      width: 90%;
-      max-width: 800px;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 30px;
-      position: relative;
-      transform: scale(0.9);
-      transition: 0.3s;
-  }
-  .proof-modal-overlay.open .proof-modal-content {
-      transform: scale(1);
-  }
-  .proof-modal-close {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: #f1f3f5;
-      border: none;
-      width: 40px; height: 40px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 18px;
-      color: var(--text-dark);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.02);
       transition: 0.2s;
   }
-  .proof-modal-close:hover { background: #e9ecef; color: var(--danger); }
-  .proof-img {
+  .proof-card:hover {
+      border-color: var(--primary-soft);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      transform: translateY(-2px);
+  }
+  .proof-card-img {
       width: 100%;
+      height: 90px;
+      object-fit: cover;
       border-radius: 8px;
-      margin-bottom: 20px;
-      border: 1px solid var(--border-light);
-      box-shadow: var(--shadow-sm);
+      margin-bottom: 8px;
+      background: #f8f9fa;
+  }
+  .proof-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-dark);
+      padding: 0 4px;
   }
 
 </style> 
 </head> 
 <body> 
-
-<div class="proof-modal-overlay" id="proof-modal">
-    <div class="proof-modal-content">
-        <button class="proof-modal-close" onclick="closeProofModal()"><i class="fas fa-times"></i></button>
-        <h3 style="margin-top:0; font-size:22px; margin-bottom: 20px; color:var(--text-dark);"><i class="fas fa-image" style="color:var(--primary); margin-right: 8px;"></i> Captures d'écran</h3>
-        <div id="proof-gallery-container">
-            </div>
-    </div>
-</div>
 
 <div class="delic-wrapper"> 
    
@@ -1370,38 +1340,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- FONCTIONS MODAL PREUVES ---
-    window.openProofModal = function(imageUrlsStr) {
-        if(!imageUrlsStr) return;
-        const urls = imageUrlsStr.split(',');
-        const container = document.getElementById('proof-gallery-container');
-        container.innerHTML = '';
-        
-        urls.forEach(url => {
-            const cleanUrl = url.trim();
-            if(cleanUrl) {
-                const img = document.createElement('img');
-                img.src = cleanUrl;
-                img.className = 'proof-img';
-                img.alt = 'Preuve de fuite';
-                container.appendChild(img);
-            }
-        });
-        
-        document.getElementById('proof-modal').classList.add('open');
-    }
-
-    window.closeProofModal = function() {
-        document.getElementById('proof-modal').classList.remove('open');
-    }
-
-    // Fermer la modal si on clique à l'extérieur de l'image
-    document.getElementById('proof-modal').addEventListener('click', function(e) {
-        if(e.target === this) {
-            closeProofModal();
-        }
-    });
-
     async function loadLatestScanInfo() {
         const statusBox = document.getElementById('track-status-box');
         const loadingMsg = document.getElementById('track-loading');
@@ -1463,22 +1401,27 @@ document.addEventListener('DOMContentLoaded', () => {
                             });
                         } else { domHtml = "<span style='color:#6c757d; font-size:13px;'>Aucun détail fourni.</span>"; }
 
-                        let linksHtml = "<ul style='padding-left:15px; margin:0;'>";
-                        if(latestRecord.Liens) {
-                            const linksArray = latestRecord.Liens.split(',');
-                            linksArray.forEach(l => {
-                                const cleanL = l.trim();
-                                if(cleanL.length > 5) linksHtml += `<li><a href="${cleanL}" target="_blank" style="color:#be123c; text-decoration:none;">${cleanL}</a></li>`;
-                            });
-                        } else { linksHtml += "<li><span style='color:#6c757d; text-decoration:none;'>Aucun lien fourni.</span></li>"; }
-                        linksHtml += "</ul>";
-
-                        // --- GESTION DU BOUTON DE PREUVES VISUELLES ---
-                        let proofBtnHtml = "";
+                        // --- GESTION DE LA GRILLE DE PREUVES VISUELLES ---
+                        let proofsGridHtml = "";
                         if(latestRecord.Preuves_Images && Array.isArray(latestRecord.Preuves_Images) && latestRecord.Preuves_Images.length > 0) {
-                            // On extrait les URL des images d'Airtable
-                            const imageUrls = latestRecord.Preuves_Images.map(img => img.url).join(',');
-                            proofBtnHtml = `<button class="d-btn-proof" onclick="openProofModal('${imageUrls}')"><i class="fas fa-eye" style="margin-right: 5px;"></i> Regarder les images</button>`;
+                            proofsGridHtml = '<div class="proofs-grid">';
+                            latestRecord.Preuves_Images.forEach(img => {
+                                let domainName = img.filename || 'site-suspect.com';
+                                domainName = domainName.replace(/\.[^/.]+$/, "");
+                                if(!domainName.includes('.')) domainName += '.com';
+                                
+                                proofsGridHtml += `
+                                <div class="proof-card">
+                                    <img src="${img.url}" alt="Preuve" class="proof-card-img">
+                                    <div class="proof-card-footer">
+                                        <span>${domainName}</span>
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                </div>`;
+                            });
+                            proofsGridHtml += '</div>';
+                        } else {
+                            proofsGridHtml = "<span style='color:#6c757d; font-size:13px;'>Aucune capture d'écran disponible pour ce scan.</span>";
                         }
 
                         const leaksCount = parseInt(latestRecord.Leaks) || 0;
@@ -1520,9 +1463,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <div style="margin-top:10px;">${domHtml}</div> 
                                     </div> 
                                     <div class="d-card" style="background:#fffafc; border: 1px solid #fce7f3; padding: 20px;"> 
-                                        <h3 style="margin-top:0; font-size:16px; color:#be123c;"><i class="fas fa-link"></i> Preuves d'infractions</h3> 
-                                        <div style="margin-top:15px; font-size:13px; word-break:break-all; max-height:200px; overflow-y:auto;">${linksHtml}</div> 
-                                        ${proofBtnHtml}
+                                        <h3 style="margin-top:0; font-size:16px; color:#be123c;"><i class="fas fa-image"></i> Preuves d'infractions</h3> 
+                                        <div style="margin-top:15px; max-height:300px; overflow-y:auto;">${proofsGridHtml}</div> 
                                     </div> 
                                 </div>
                             </div>
