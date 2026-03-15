@@ -174,6 +174,10 @@
   .d-btn-secondary:hover { background: var(--primary-soft); color: var(--primary); } 
   .d-btn-disabled { opacity: 0.5; cursor: not-allowed; border-color: #ccc; color: #ccc; box-shadow: none !important; transform: none !important; } 
 
+  /* Bouton Preuves */
+  .d-btn-proof { background: transparent; color: #be123c; border: 1px solid #fecdd3; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 12px; transition: 0.2s; display: inline-block; margin-top: 15px; }
+  .d-btn-proof:hover { background: #ffe4e6; border-color: #f43f5e; }
+
   /* Boutons Action Review */ 
   .d-btn-approve { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; } 
   .d-btn-approve:hover:not(:disabled) { background: #059669; }
@@ -348,9 +352,73 @@
       transform: rotate(180deg);
   }
 
+  /* --- GALERIE PREUVES (MODAL) --- */
+  .proof-modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 9999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.3s;
+      backdrop-filter: blur(5px);
+  }
+  .proof-modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+  }
+  .proof-modal-content {
+      background: #fff;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 30px;
+      position: relative;
+      transform: scale(0.9);
+      transition: 0.3s;
+  }
+  .proof-modal-overlay.open .proof-modal-content {
+      transform: scale(1);
+  }
+  .proof-modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #f1f3f5;
+      border: none;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      color: var(--text-dark);
+      transition: 0.2s;
+  }
+  .proof-modal-close:hover { background: #e9ecef; color: var(--danger); }
+  .proof-img {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm);
+  }
+
 </style> 
 </head> 
 <body> 
+
+<div class="proof-modal-overlay" id="proof-modal">
+    <div class="proof-modal-content">
+        <button class="proof-modal-close" onclick="closeProofModal()"><i class="fas fa-times"></i></button>
+        <h3 style="margin-top:0; font-size:22px; margin-bottom: 20px; color:var(--text-dark);"><i class="fas fa-image" style="color:var(--primary); margin-right: 8px;"></i> Captures d'écran</h3>
+        <div id="proof-gallery-container">
+            </div>
+    </div>
+</div>
 
 <div class="delic-wrapper"> 
    
@@ -817,7 +885,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let CURRENT_PLAN = "Débutant";
     let globalUniqueProfiles = new Set();
 
-    // Variable pour gérer l'affichage de la pastille globale du menu Manuel
     let totalNotifications = 0;
 
     function updateMainMenuBadge() {
@@ -1130,8 +1197,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if(document.getElementById('ui-manuals-used')) document.getElementById('ui-manuals-used').innerText = data.records.length;
 
-                // --- GESTION NOTIFICATION AGENT ---
-                // On considère qu'il y a une notification si Sarah a laissé un "Compte Rendu" et que le statut est "Résolu" ou "Rejeté"
                 const unreadAgentMessages = data.records.filter(r => r.fields.Compte_Rendu && (r.fields.Status === 'Résolu' || r.fields.Status === 'Rejeté')).length;
                 const badgeAgent = document.getElementById('badge-agent');
                 if (unreadAgentMessages > 0) {
@@ -1200,8 +1265,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             
             if (data.records && data.records.length > 0) {
-
-                // --- GESTION NOTIFICATION EVALUATION ---
                 const unreadEvalMessages = data.records.length;
                 const badgeReview = document.getElementById('badge-review');
                 if (unreadEvalMessages > 0) {
@@ -1307,6 +1370,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- FONCTIONS MODAL PREUVES ---
+    window.openProofModal = function(imageUrlsStr) {
+        if(!imageUrlsStr) return;
+        const urls = imageUrlsStr.split(',');
+        const container = document.getElementById('proof-gallery-container');
+        container.innerHTML = '';
+        
+        urls.forEach(url => {
+            const cleanUrl = url.trim();
+            if(cleanUrl) {
+                const img = document.createElement('img');
+                img.src = cleanUrl;
+                img.className = 'proof-img';
+                img.alt = 'Preuve de fuite';
+                container.appendChild(img);
+            }
+        });
+        
+        document.getElementById('proof-modal').classList.add('open');
+    }
+
+    window.closeProofModal = function() {
+        document.getElementById('proof-modal').classList.remove('open');
+    }
+
+    // Fermer la modal si on clique à l'extérieur de l'image
+    document.getElementById('proof-modal').addEventListener('click', function(e) {
+        if(e.target === this) {
+            closeProofModal();
+        }
+    });
+
     async function loadLatestScanInfo() {
         const statusBox = document.getElementById('track-status-box');
         const loadingMsg = document.getElementById('track-loading');
@@ -1378,6 +1473,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else { linksHtml += "<li><span style='color:#6c757d; text-decoration:none;'>Aucun lien fourni.</span></li>"; }
                         linksHtml += "</ul>";
 
+                        // --- GESTION DU BOUTON DE PREUVES VISUELLES ---
+                        let proofBtnHtml = "";
+                        if(latestRecord.Preuves_Images && Array.isArray(latestRecord.Preuves_Images) && latestRecord.Preuves_Images.length > 0) {
+                            // On extrait les URL des images d'Airtable
+                            const imageUrls = latestRecord.Preuves_Images.map(img => img.url).join(',');
+                            proofBtnHtml = `<button class="d-btn-proof" onclick="openProofModal('${imageUrls}')"><i class="fas fa-eye" style="margin-right: 5px;"></i> Regarder les images</button>`;
+                        }
+
                         const leaksCount = parseInt(latestRecord.Leaks) || 0;
                         const lossStr = "$" + formatNumber(latestRecord.Pertes);
                         const viewsStr = formatNumber(latestRecord.Vues);
@@ -1419,6 +1522,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <div class="d-card" style="background:#fffafc; border: 1px solid #fce7f3; padding: 20px;"> 
                                         <h3 style="margin-top:0; font-size:16px; color:#be123c;"><i class="fas fa-link"></i> Preuves d'infractions</h3> 
                                         <div style="margin-top:15px; font-size:13px; word-break:break-all; max-height:200px; overflow-y:auto;">${linksHtml}</div> 
+                                        ${proofBtnHtml}
                                     </div> 
                                 </div>
                             </div>
@@ -1649,7 +1753,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(targetView) { 
                     targetView.classList.remove('d-hidden'); targetView.classList.add('d-visible'); 
 
-                    // --- Disparition des pastilles de notification ---
                     if(targetId === 'view-agent') {
                         renderAgentTickets(); 
                         const badgeAgent = document.getElementById('badge-agent');
