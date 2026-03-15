@@ -129,7 +129,7 @@
       padding: 2px 6px;
       border-radius: 10px;
       animation: popIn 0.3s ease;
-      display: none; /* Caché par défaut */
+      display: none; 
   }
   .sub-badge {
       right: 10px;
@@ -400,7 +400,7 @@
   }
   .proof-modal-close:hover { background: #e9ecef; color: var(--danger); }
   
-  /* GRID INTERNE DE LA MODAL (STYLE PINTEREST) */
+  /* GRID INTERNE DE LA MODAL (UNIVQUEMENT LES IMAGES) */
   #proof-gallery-container {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -411,27 +411,11 @@
       background: #fff;
       border: 1px solid var(--border-light);
       border-radius: 10px;
-      padding: 8px;
+      padding: 0; /* Plus d'espace autour */
       box-shadow: 0 4px 6px rgba(0,0,0,0.03);
       display: flex;
       flex-direction: column;
-  }
-  .proof-card-img {
-      width: 100%;
-      height: 140px;
-      object-fit: cover;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      background: #000;
-  }
-  .proof-card-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      font-weight: 700;
-      color: #1a1a1a;
-      padding: 0 4px 4px 4px;
+      overflow: hidden; /* Les coins ronds coupent l'image proprement */
   }
 </style> 
 </head> 
@@ -913,7 +897,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let globalUniqueProfiles = new Set();
 
     let totalNotifications = 0;
-    window.proofImagesData = window.proofImagesData || {}; // Pour stocker les images temporairement
+    window.proofImagesData = window.proofImagesData || {}; 
 
     function updateMainMenuBadge() {
         const mainBadge = document.getElementById('badge-manual-main');
@@ -1398,7 +1382,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- FONCTIONS MODAL PREUVES ---
+    // --- FONCTIONS MODAL PREUVES (JUSTE LES IMAGES) ---
     window.openProofModal = function(recordId) {
         if(!recordId) return;
         const images = window.proofImagesData[recordId] || [];
@@ -1408,17 +1392,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (images.length > 0) {
             let gridHtml = '';
             images.forEach(img => {
-                let domainName = img.filename || 'site-suspect.com';
-                domainName = domainName.replace(/\.[^/.]+$/, ""); // Supprime l'extension du fichier (.png, .jpg)
-                if(!domainName.includes('.')) domainName += '.com';
-                
+                // Création d'une carte épurée avec uniquement l'image
                 gridHtml += `
                 <div class="proof-card">
-                    <img src="${img.url}" alt="Preuve" class="proof-card-img">
-                    <div class="proof-card-footer">
-                        <span>${domainName}</span>
-                        <i class="fas fa-exclamation-triangle" style="color: var(--danger); font-size: 16px;"></i>
-                    </div>
+                    <img src="${img.url}" alt="Preuve de fuite" style="width: 100%; height: 160px; object-fit: cover; display: block; border-radius: 8px; background: #000;">
                 </div>`;
             });
             container.innerHTML = gridHtml;
@@ -1501,6 +1478,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             });
                         } else { domHtml = "<span style='color:#6c757d; font-size:13px;'>Aucun détail fourni.</span>"; }
 
+                        // --- LIENS CLIQUABLES CONSERVÉS ---
                         let linksHtml = "<ul style='padding-left:15px; margin:0;'>";
                         if(latestRecord.Liens) {
                             const linksArray = latestRecord.Liens.split(',');
@@ -1511,10 +1489,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else { linksHtml += "<li><span style='color:#6c757d; text-decoration:none;'>Aucun lien fourni.</span></li>"; }
                         linksHtml += "</ul>";
 
-                        // --- GESTION DU BOUTON DE PREUVES VISUELLES ---
+                        // --- BOUTON DE PREUVES VISUELLES ---
                         let proofBtnHtml = "";
                         if(latestRecord.Preuves_Images && Array.isArray(latestRecord.Preuves_Images) && latestRecord.Preuves_Images.length > 0) {
-                            // On stocke les images en mémoire pour les passer à la pop-up
                             window.proofImagesData[recordId] = latestRecord.Preuves_Images;
                             proofBtnHtml = `<button class="d-btn-proof" onclick="openProofModal('${recordId}')"><i class="fas fa-eye" style="margin-right: 5px;"></i> Regarder les images</button>`;
                         }
