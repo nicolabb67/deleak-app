@@ -1099,9 +1099,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!planString) planString = "";
         const planLower = planString.toLowerCase();
         
-        // SECURITÉ MAXIMALE : On intercepte n'importe quel ID de paiement (qui commence toujours par prc_ ou price_ ou sub_)
-        let isPaid = planLower.includes("prc_") || planLower.includes("price_") || planLower.includes("sub_");
-        
         if (planLower.includes("pro") || planLower.includes("728h0m70") || planLower.includes("7o210xsz") || planLower.includes("élite") || planLower.includes("elite")) {
             MAX_PROFILES = 4;
             MAX_REQUESTS = Infinity;
@@ -1112,8 +1109,7 @@ document.addEventListener('DOMContentLoaded', () => {
             MAX_REQUESTS = 50;
             CURRENT_PLAN = "STANDARD +";
         } 
-        else if (planLower.includes("débutant") || planLower.includes("748e0mz6") || planLower.includes("nz9a06p4") || planLower.includes("standard") || isPaid) {
-            // Par défaut, si on détecte un paiement mais qu'on ne sait pas lequel, on donne l'accès Standard pour ne jamais bloquer un client payant
+        else if (planLower.includes("débutant") || planLower.includes("748e0mz6") || planLower.includes("nz9a06p4") || planLower.includes("standard")) {
             MAX_PROFILES = 1;
             MAX_REQUESTS = 20;
             CURRENT_PLAN = "STANDARD";
@@ -1132,17 +1128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(document.getElementById('ui-manuals-max')) document.getElementById('ui-manuals-max').innerText = MAX_REQUESTS === Infinity ? "∞" : MAX_REQUESTS;
     }
 
-    // --- 🛑 CORRECTION DU BUG DE TIMING MEMBERSTACK 🛑 ---
-    const searchParams = new URLSearchParams(window.location.search);
-    const urlMsPriceId = searchParams.get('msPriceId'); // Preuve absolue que Stripe a validé
-    const urlPlan = searchParams.get('plan') || urlMsPriceId || localStorage.getItem('deleak_plan') || '';
-    
-    // Sauvegarde immédiate du plan dans la mémoire
-    if (urlPlan && urlPlan !== 'null') {
-        localStorage.setItem('deleak_plan', urlPlan);
-    }
-    
-    // Déverrouillage immédiat du tableau de bord
+    const urlPlan = new URLSearchParams(window.location.search).get('plan') || localStorage.getItem('deleak_plan') || '';
     setPlanLimits(urlPlan);
 
     window.addEventListener('message', function(event) {
@@ -1150,20 +1136,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (event.data.startsWith('ms-plan-active:')) {
             let planId = event.data.split(':')[1];
-            if (!planId || planId === 'undefined' || planId === 'null') planId = '';
-
-            // BOUCLIER ANTI-RETOUR EN ARRIÈRE (LE FIX)
-            // Si l'URL contient la preuve du paiement (urlMsPriceId), ET que Memberstack 
-            // essaie de nous envoyer un faux plan gratuit ("") parce qu'il n'est pas encore à jour : ON LE BLOQUE.
-            if (urlMsPriceId && !planId.includes('prc_')) {
-                console.log("Bouclier activé : On ignore le SDK Memberstack, le paiement est validé.");
-                return; // On refuse de rétrograder le client !
-            }
-            
-            if (planId !== '') {
-                localStorage.setItem('deleak_plan', planId);
-                setPlanLimits(planId);
-            }
+            localStorage.setItem('deleak_plan', planId);
+            setPlanLimits(planId);
         }
         
         if (event.data === 'ms-profile-updated') {
@@ -1220,9 +1194,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if(typeof renderActionsLog === 'function') renderActionsLog();
     };
 
-    const urlParamsConfig = new URLSearchParams(window.location.search);
-    const clientName = urlParamsConfig.get('name') || localStorage.getItem('deleak_clientName') || "Utilisateur Elite"; 
-    const clientEmail = urlParamsConfig.get('email') || localStorage.getItem('deleak_clientEmail') || "contact@client.com"; 
+    const urlParams = new URLSearchParams(window.location.search);
+    const clientName = urlParams.get('name') || localStorage.getItem('deleak_clientName') || "Utilisateur Elite"; 
+    const clientEmail = urlParams.get('email') || localStorage.getItem('deleak_clientEmail') || "contact@client.com"; 
 
     const nameDisplay = document.getElementById('sidebar-user-name'); 
     const initialDisplay = document.getElementById('sidebar-user-initial'); 
