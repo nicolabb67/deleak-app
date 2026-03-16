@@ -1132,15 +1132,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if(document.getElementById('ui-manuals-max')) document.getElementById('ui-manuals-max').innerText = MAX_REQUESTS === Infinity ? "∞" : MAX_REQUESTS;
     }
 
-    // LIGNE CORRIGÉE : Le code intercepte désormais les vrais IDs de paiement de Memberstack
+    // --- 🛑 CORRECTION DU BUG DE TIMING MEMBERSTACK 🛑 ---
     const searchParams = new URLSearchParams(window.location.search);
-    const urlPlan = searchParams.get('plan') || searchParams.get('msPriceId') || localStorage.getItem('deleak_plan') || '';
+    const urlMsPriceId = searchParams.get('msPriceId'); // Preuve absolue que Stripe a validé
+    const urlPlan = searchParams.get('plan') || urlMsPriceId || localStorage.getItem('deleak_plan') || '';
     
-    // Sauvegarde immédiate du plan dans la mémoire pour les prochaines visites
-    if (urlPlan) {
+    // Sauvegarde immédiate du plan dans la mémoire
+    if (urlPlan && urlPlan !== 'null') {
         localStorage.setItem('deleak_plan', urlPlan);
     }
     
+    // Déverrouillage immédiat du tableau de bord
     setPlanLimits(urlPlan);
 
     window.addEventListener('message', function(event) {
@@ -1148,8 +1150,20 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (event.data.startsWith('ms-plan-active:')) {
             let planId = event.data.split(':')[1];
-            localStorage.setItem('deleak_plan', planId);
-            setPlanLimits(planId);
+            if (!planId || planId === 'undefined' || planId === 'null') planId = '';
+
+            // BOUCLIER ANTI-RETOUR EN ARRIÈRE (LE FIX)
+            // Si l'URL contient la preuve du paiement (urlMsPriceId), ET que Memberstack 
+            // essaie de nous envoyer un faux plan gratuit ("") parce qu'il n'est pas encore à jour : ON LE BLOQUE.
+            if (urlMsPriceId && !planId.includes('prc_')) {
+                console.log("Bouclier activé : On ignore le SDK Memberstack, le paiement est validé.");
+                return; // On refuse de rétrograder le client !
+            }
+            
+            if (planId !== '') {
+                localStorage.setItem('deleak_plan', planId);
+                setPlanLimits(planId);
+            }
         }
         
         if (event.data === 'ms-profile-updated') {
