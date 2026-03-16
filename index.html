@@ -1099,6 +1099,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!planString) planString = "";
         const planLower = planString.toLowerCase();
         
+        // SECURITÉ MAXIMALE : On intercepte n'importe quel ID de paiement (qui commence toujours par prc_ ou price_ ou sub_)
+        let isPaid = planLower.includes("prc_") || planLower.includes("price_") || planLower.includes("sub_");
+        
         if (planLower.includes("pro") || planLower.includes("728h0m70") || planLower.includes("7o210xsz") || planLower.includes("élite") || planLower.includes("elite")) {
             MAX_PROFILES = 4;
             MAX_REQUESTS = Infinity;
@@ -1109,7 +1112,8 @@ document.addEventListener('DOMContentLoaded', () => {
             MAX_REQUESTS = 50;
             CURRENT_PLAN = "STANDARD +";
         } 
-        else if (planLower.includes("débutant") || planLower.includes("748e0mz6") || planLower.includes("nz9a06p4") || planLower.includes("standard")) {
+        else if (planLower.includes("débutant") || planLower.includes("748e0mz6") || planLower.includes("nz9a06p4") || planLower.includes("standard") || isPaid) {
+            // Par défaut, si on détecte un paiement mais qu'on ne sait pas lequel, on donne l'accès Standard pour ne jamais bloquer un client payant
             MAX_PROFILES = 1;
             MAX_REQUESTS = 20;
             CURRENT_PLAN = "STANDARD";
