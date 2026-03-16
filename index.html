@@ -175,6 +175,10 @@
   .d-btn-secondary:hover { background: var(--primary-soft); color: var(--primary); } 
   .d-btn-disabled { opacity: 0.5; cursor: not-allowed; border-color: #ccc; color: #ccc; box-shadow: none !important; transform: none !important; } 
 
+  /* Bouton Preuves */
+  .d-btn-proof { background: transparent; color: #be123c; border: 1px solid #fecdd3; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 12px; transition: 0.2s; display: inline-block; margin-top: 15px; }
+  .d-btn-proof:hover { background: #ffe4e6; border-color: #f43f5e; }
+
   /* Boutons Action Review */ 
   .d-btn-approve { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; } 
   .d-btn-approve:hover:not(:disabled) { background: #059669; }
@@ -1001,7 +1005,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let MAX_PROFILES = 1;
     let MAX_REQUESTS = 20;
-    let CURRENT_PLAN = "Standard";
+    let CURRENT_PLAN = "Découverte";
     let globalUniqueProfiles = new Set();
 
     let totalNotifications = 0;
@@ -1105,10 +1109,16 @@ document.addEventListener('DOMContentLoaded', () => {
             MAX_REQUESTS = 50;
             CURRENT_PLAN = "STANDARD +";
         } 
-        else {
+        else if (planLower.includes("débutant") || planLower.includes("748e0mz6") || planLower.includes("nz9a06p4") || planLower.includes("standard")) {
             MAX_PROFILES = 1;
             MAX_REQUESTS = 20;
             CURRENT_PLAN = "STANDARD";
+        }
+        else {
+            // Option 2 : Mode Vitrine pour les comptes gratuits
+            MAX_PROFILES = 0;
+            MAX_REQUESTS = 0;
+            CURRENT_PLAN = "DÉCOUVERTE";
         }
 
         if(document.getElementById('ui-profiles-max')) document.getElementById('ui-profiles-max').innerText = MAX_PROFILES;
@@ -1210,7 +1220,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const AIRTABLE_TABLE_NAME = "Tickets"; 
     const AIRTABLE_MANUAL_TABLE = "Demandes";
     const AIRTABLE_EVAL_TABLE = "Evaluations"; 
-    const AIRTABLE_ACTIONS_TABLE = "Actions"; // <--- NOUVELLE TABLE
+    const AIRTABLE_ACTIONS_TABLE = "Actions"; 
 
     let mainChart; 
     let globalChartRecords = []; 
@@ -1762,6 +1772,12 @@ document.addEventListener('DOMContentLoaded', () => {
     loadChartDataFromAirtable(); renderAgentTickets(); loadEvaluationsFromAirtable(); 
 
     window.submitManualRequest = function() { 
+        if (CURRENT_PLAN === "DÉCOUVERTE") {
+            showNotification("🔒 Abonnement requis. Passez à un plan supérieur pour débloquer cette fonctionnalité.", "warning");
+            setTimeout(() => { document.querySelector('[data-target="view-billing"]')?.click(); }, 1500);
+            return;
+        }
+
         const input = document.getElementById('manual-input'); 
         const message = document.getElementById('manual-message'); 
         const btn = document.getElementById('btn-submit-manual'); 
@@ -2017,6 +2033,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const submitSocialsBtn = e.target.closest('#btn-submit-socials');
         if(submitSocialsBtn) {
+            
+            // BLOCAGE PLAN DÉCOUVERTE
+            if (CURRENT_PLAN === "DÉCOUVERTE") {
+                showNotification("🔒 Abonnement requis. Passez à un plan supérieur pour débloquer cette fonctionnalité.", "warning");
+                setTimeout(() => { document.querySelector('[data-target="view-billing"]')?.click(); }, 1500);
+                return;
+            }
+
             const ig = document.getElementById('social-ig').value.trim(); const tk = document.getElementById('social-tk').value.trim();
             const sc = document.getElementById('social-sc').value.trim(); const yt = document.getElementById('social-yt').value.trim();
             
@@ -2062,6 +2086,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const startScanBtn = e.target.closest('#btn-start-scan');
         if(startScanBtn) {
+            
+            // BLOCAGE PLAN DÉCOUVERTE
+            if (CURRENT_PLAN === "DÉCOUVERTE") {
+                showNotification("🔒 Abonnement requis. Passez à un plan supérieur pour débloquer cette fonctionnalité.", "warning");
+                setTimeout(() => { document.querySelector('[data-target="view-billing"]')?.click(); }, 1500);
+                return;
+            }
+
             const input = document.getElementById('scan-input'); const pseudoValue = input.value.trim(); const resultBox = document.getElementById('scan-ticket-result'); 
             if(pseudoValue.length < 3) { 
                 input.classList.add('error'); input.placeholder = "⚠️ Minimum 3 caractères"; setTimeout(() => { input.classList.remove('error'); input.placeholder = "Pseudos à rechercher..."; }, 2000); return; 
