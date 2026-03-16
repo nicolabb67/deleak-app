@@ -1128,7 +1128,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if(document.getElementById('ui-manuals-max')) document.getElementById('ui-manuals-max').innerText = MAX_REQUESTS === Infinity ? "∞" : MAX_REQUESTS;
     }
 
-    const urlPlan = new URLSearchParams(window.location.search).get('plan') || localStorage.getItem('deleak_plan') || '';
+    // LIGNE CORRIGÉE : Le code intercepte désormais les vrais IDs de paiement de Memberstack
+    const searchParams = new URLSearchParams(window.location.search);
+    const urlPlan = searchParams.get('plan') || searchParams.get('msPriceId') || localStorage.getItem('deleak_plan') || '';
+    
+    // Sauvegarde immédiate du plan dans la mémoire pour les prochaines visites
+    if (urlPlan) {
+        localStorage.setItem('deleak_plan', urlPlan);
+    }
+    
     setPlanLimits(urlPlan);
 
     window.addEventListener('message', function(event) {
@@ -1194,9 +1202,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if(typeof renderActionsLog === 'function') renderActionsLog();
     };
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const clientName = urlParams.get('name') || localStorage.getItem('deleak_clientName') || "Utilisateur Elite"; 
-    const clientEmail = urlParams.get('email') || localStorage.getItem('deleak_clientEmail') || "contact@client.com"; 
+    const urlParamsConfig = new URLSearchParams(window.location.search);
+    const clientName = urlParamsConfig.get('name') || localStorage.getItem('deleak_clientName') || "Utilisateur Elite"; 
+    const clientEmail = urlParamsConfig.get('email') || localStorage.getItem('deleak_clientEmail') || "contact@client.com"; 
 
     const nameDisplay = document.getElementById('sidebar-user-name'); 
     const initialDisplay = document.getElementById('sidebar-user-initial'); 
