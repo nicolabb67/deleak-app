@@ -1003,15 +1003,14 @@
 <script> 
 document.addEventListener('DOMContentLoaded', () => { 
 
+    // LE PLAN DE BASE EST MAINTENANT STANDARD (ON A SUPPRIMÉ LE PLAN DÉCOUVERTE)
     let MAX_PROFILES = 1;
     let MAX_REQUESTS = 20;
-    let CURRENT_PLAN = "Découverte";
+    let CURRENT_PLAN = "Standard";
+    
     let globalUniqueProfiles = new Set();
-
     let totalNotifications = 0;
     window.proofImagesData = window.proofImagesData || {}; 
-
-    // Variable pour stocker les actions Airtable
     let airtableActions = [];
 
     // --- FONCTIONS MODAL PREUVES ---
@@ -1109,16 +1108,12 @@ document.addEventListener('DOMContentLoaded', () => {
             MAX_REQUESTS = 50;
             CURRENT_PLAN = "STANDARD +";
         } 
-        else if (planLower.includes("débutant") || planLower.includes("748e0mz6") || planLower.includes("nz9a06p4") || planLower.includes("standard")) {
+        else {
+            // FINI LE PLAN GRATUIT DÉCOUVERTE !
+            // Par défaut, toute personne sur cette page a un accès minimum "Standard".
             MAX_PROFILES = 1;
             MAX_REQUESTS = 20;
             CURRENT_PLAN = "STANDARD";
-        }
-        else {
-            // Option 2 : Mode Vitrine pour les comptes gratuits
-            MAX_PROFILES = 0;
-            MAX_REQUESTS = 0;
-            CURRENT_PLAN = "DÉCOUVERTE";
         }
 
         if(document.getElementById('ui-profiles-max')) document.getElementById('ui-profiles-max').innerText = MAX_PROFILES;
@@ -1128,7 +1123,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if(document.getElementById('ui-manuals-max')) document.getElementById('ui-manuals-max').innerText = MAX_REQUESTS === Infinity ? "∞" : MAX_REQUESTS;
     }
 
-    const urlPlan = new URLSearchParams(window.location.search).get('plan') || localStorage.getItem('deleak_plan') || '';
+    const searchParams = new URLSearchParams(window.location.search);
+    const urlPlan = searchParams.get('plan') || localStorage.getItem('deleak_plan') || '';
+    
+    if (urlPlan && urlPlan !== 'null') {
+        localStorage.setItem('deleak_plan', urlPlan);
+    }
+    
     setPlanLimits(urlPlan);
 
     window.addEventListener('message', function(event) {
@@ -1136,8 +1137,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (event.data.startsWith('ms-plan-active:')) {
             let planId = event.data.split(':')[1];
-            localStorage.setItem('deleak_plan', planId);
-            setPlanLimits(planId);
+            if (planId && planId !== 'undefined' && planId !== 'null' && planId !== '') {
+                localStorage.setItem('deleak_plan', planId);
+                setPlanLimits(planId);
+            }
         }
         
         if (event.data === 'ms-profile-updated') {
@@ -1194,9 +1197,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if(typeof renderActionsLog === 'function') renderActionsLog();
     };
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const clientName = urlParams.get('name') || localStorage.getItem('deleak_clientName') || "Utilisateur Elite"; 
-    const clientEmail = urlParams.get('email') || localStorage.getItem('deleak_clientEmail') || "contact@client.com"; 
+    const urlParamsConfig = new URLSearchParams(window.location.search);
+    const clientName = urlParamsConfig.get('name') || localStorage.getItem('deleak_clientName') || "Utilisateur Elite"; 
+    const clientEmail = urlParamsConfig.get('email') || localStorage.getItem('deleak_clientEmail') || "contact@client.com"; 
 
     const nameDisplay = document.getElementById('sidebar-user-name'); 
     const initialDisplay = document.getElementById('sidebar-user-initial'); 
@@ -1772,12 +1775,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadChartDataFromAirtable(); renderAgentTickets(); loadEvaluationsFromAirtable(); 
 
     window.submitManualRequest = function() { 
-        if (CURRENT_PLAN === "DÉCOUVERTE") {
-            showNotification("🔒 Abonnement requis. Passez à un plan supérieur pour débloquer cette fonctionnalité.", "warning");
-            setTimeout(() => { document.querySelector('[data-target="view-billing"]')?.click(); }, 1500);
-            return;
-        }
-
         const input = document.getElementById('manual-input'); 
         const message = document.getElementById('manual-message'); 
         const btn = document.getElementById('btn-submit-manual'); 
@@ -2034,13 +2031,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const submitSocialsBtn = e.target.closest('#btn-submit-socials');
         if(submitSocialsBtn) {
             
-            // BLOCAGE PLAN DÉCOUVERTE
-            if (CURRENT_PLAN === "DÉCOUVERTE") {
-                showNotification("🔒 Abonnement requis. Passez à un plan supérieur pour débloquer cette fonctionnalité.", "warning");
-                setTimeout(() => { document.querySelector('[data-target="view-billing"]')?.click(); }, 1500);
-                return;
-            }
-
             const ig = document.getElementById('social-ig').value.trim(); const tk = document.getElementById('social-tk').value.trim();
             const sc = document.getElementById('social-sc').value.trim(); const yt = document.getElementById('social-yt').value.trim();
             
@@ -2087,13 +2077,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const startScanBtn = e.target.closest('#btn-start-scan');
         if(startScanBtn) {
             
-            // BLOCAGE PLAN DÉCOUVERTE
-            if (CURRENT_PLAN === "DÉCOUVERTE") {
-                showNotification("🔒 Abonnement requis. Passez à un plan supérieur pour débloquer cette fonctionnalité.", "warning");
-                setTimeout(() => { document.querySelector('[data-target="view-billing"]')?.click(); }, 1500);
-                return;
-            }
-
             const input = document.getElementById('scan-input'); const pseudoValue = input.value.trim(); const resultBox = document.getElementById('scan-ticket-result'); 
             if(pseudoValue.length < 3) { 
                 input.classList.add('error'); input.placeholder = "⚠️ Minimum 3 caractères"; setTimeout(() => { input.classList.remove('error'); input.placeholder = "Pseudos à rechercher..."; }, 2000); return; 
